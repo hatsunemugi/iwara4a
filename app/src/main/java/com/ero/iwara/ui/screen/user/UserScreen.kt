@@ -19,17 +19,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
 import com.ero.iwara.R
 import com.ero.iwara.model.user.UserData
 import com.ero.iwara.ui.public.FullScreenTopBar
 import com.ero.iwara.ui.public.TabItem
+import com.ero.iwara.ui.public.TabRow
 import com.ero.iwara.ui.theme.PINK
 import com.ero.iwara.util.noRippleClickable
 
-
-@ExperimentalAnimationApi
 @Composable
 fun UserScreen(
     navController: NavController,
@@ -79,8 +77,6 @@ fun UserScreen(
     }
 }
 
-@OptIn(ExperimentalCoilApi::class)
-@ExperimentalAnimationApi
 @Composable
 private fun UserInfo(navController: NavController, userData: UserData) {
     Column {
@@ -122,7 +118,7 @@ private fun UserInfo(navController: NavController, userData: UserData) {
         }
         // 评论/ 视频 / 图片
         val pagerState = androidx.compose.foundation.pager.rememberPagerState(pageCount = {3})
-        com.ero.iwara.ui.public.TabRow {
+        TabRow {
             TabItem(pagerState = pagerState, index = 0, text = "评论")
             TabItem(pagerState = pagerState, index = 1, text = "发布的视频")
             TabItem(pagerState = pagerState, index = 2, text = "发布的图片")

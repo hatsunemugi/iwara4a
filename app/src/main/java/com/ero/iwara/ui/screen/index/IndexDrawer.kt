@@ -22,18 +22,24 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.ero.iwara.util.set
+import kotlinx.coroutines.launch
 
 @Composable
 fun IndexDrawer(navController: NavController, indexViewModel: IndexViewModel) {
     fun isLoading() = indexViewModel.loadingSelf
+    val clipboard = LocalClipboard.current
+    val scope = rememberCoroutineScope()
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -62,7 +68,15 @@ fun IndexDrawer(navController: NavController, indexViewModel: IndexViewModel) {
                                 navController.navigate("login")
                             }
                     ) {
-                        AsyncImage(model = indexViewModel.self.profilePic, modifier = Modifier.fillMaxSize(), contentDescription = null)
+                        AsyncImage(model = indexViewModel.self.profilePic,
+                            modifier = Modifier.fillMaxSize(),
+                            contentDescription = null,
+                            onError = {
+                                scope.launch {
+                                    clipboard.set(indexViewModel.self.profilePic)
+                                }
+                            }
+                        )
                     }
                 }
 

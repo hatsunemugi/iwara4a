@@ -34,7 +34,6 @@ import com.ero.iwara.ui.screen.index.IndexViewModel
 import com.ero.iwara.util.noRippleClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
-@ExperimentalFoundationApi
 @Composable
 fun SubPage(navController: NavController, indexViewModel: IndexViewModel) {
     val subscriptionList = indexViewModel.subscriptionPager.collectAsLazyPagingItems()

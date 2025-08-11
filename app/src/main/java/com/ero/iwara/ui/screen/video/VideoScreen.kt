@@ -83,7 +83,6 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
 import com.ero.iwara.R
 import com.ero.iwara.model.detail.video.VideoDetail
@@ -252,8 +251,6 @@ private fun SystemUiController(
     }
 }
 
-
-@ExperimentalAnimationApi
 @Composable
 private fun VideoInfo(
     navController: NavController,
@@ -291,7 +288,6 @@ private fun VideoInfo(
     }
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 private fun VideoDescription(
     navController: NavController,

@@ -35,12 +35,9 @@ import com.ero.iwara.ui.screen.index.IndexScreen
 import com.ero.iwara.ui.screen.login.LoginScreen
 import com.ero.iwara.ui.screen.splash.SplashScreen
 import dagger.hilt.android.AndroidEntryPoint
-import okhttp3.OkHttpClient
-import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @Inject lateinit var okHttpClient: OkHttpClient
     var screenOrientation by mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT)
 
     @RequiresApi(Build.VERSION_CODES.R)

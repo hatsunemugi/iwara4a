@@ -7,7 +7,9 @@ import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ero.iwara.DatabaseManager
+import com.ero.iwara.event.AppEvent
 import com.ero.iwara.event.LoginEvent
+import com.ero.iwara.event.postFlowEvent
 import com.ero.iwara.model.session.Session
 import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.repo.UserRepo
@@ -58,7 +60,7 @@ class LoginViewModel @Inject constructor(
                     accessToken = accessResponse.read()
                     sessionManager.update(token, accessToken)
                     databaseManager.saveUser(userName, password, token, accessToken)
-                    postEvent(LoginEvent(Session(token, accessToken)))
+                    postFlowEvent(AppEvent.UserLoggedInEvent(userName, password))
                     result(true)
                 }
                 else{

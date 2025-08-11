@@ -65,8 +65,7 @@ private const val TAG = "IwaraParser"
  *
  * @author RE
  */
-class IwaraParser()
-{
+class IwaraParser() {
     val api = "https://api.iwara.tv"
     val file = "https://i.iwara.tv"
     fun getClient(): OkHttpClient

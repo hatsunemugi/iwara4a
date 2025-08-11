@@ -3,7 +3,6 @@ package com.ero.iwara.api
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.ero.iwara.api.service.IwaraParser
-import com.ero.iwara.api.service.IwaraService
 import com.ero.iwara.model.comment.CommentList
 import com.ero.iwara.model.detail.image.ImageDetail
 import com.ero.iwara.model.detail.video.VideoDetail
@@ -28,7 +27,7 @@ import com.ero.iwara.util.autoRetry
  */
 class IwaraApiImpl(
     private val iwaraParser: IwaraParser,
-    private val iwaraService: IwaraService
+//    private val iwaraService: IwaraService
 ) : IwaraApi {
     override suspend fun login(username: String, password: String): Response<String> =
         iwaraParser.login(UserLogin(username, password))

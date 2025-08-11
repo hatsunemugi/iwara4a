@@ -30,24 +30,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
 import com.ero.iwara.R
 import com.ero.iwara.ui.public.FullScreenTopBar
 import com.ero.iwara.ui.screen.index.page.ImageListPage
 import com.ero.iwara.ui.screen.index.page.SubPage
 import com.ero.iwara.ui.screen.index.page.VideoListPage
+import com.ero.iwara.util.set
 import kotlinx.coroutines.launch
 
-@ExperimentalFoundationApi
 @Composable
 fun IndexScreen(navController: NavController, indexViewModel: IndexViewModel = hiltViewModel()) {
-    val pagerState = rememberPagerState(initialPage = 1, pageCount = { Int.MAX_VALUE })
+    val pagerState = rememberPagerState(initialPage = 1, pageCount = { 3 })
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -88,10 +88,10 @@ fun IndexScreen(navController: NavController, indexViewModel: IndexViewModel = h
     }
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 private fun TopBar(drawerState: DrawerState, indexViewModel: IndexViewModel, navController: NavController) {
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
+    val clipboard = LocalClipboard.current
     FullScreenTopBar(
         modifier = Modifier.height(32.dp),
         title = {
@@ -99,7 +99,7 @@ private fun TopBar(drawerState: DrawerState, indexViewModel: IndexViewModel, nav
         },
         navigationIcon = {
             IconButton(onClick = {
-                coroutineScope.launch {
+                scope.launch {
                     drawerState.open()
                 }
             }) {
@@ -109,7 +109,12 @@ private fun TopBar(drawerState: DrawerState, indexViewModel: IndexViewModel, nav
                     AsyncImage(
                         model = indexViewModel.self.profilePic,
                         modifier = Modifier.fillMaxSize(),
-                        contentDescription = null
+                        contentDescription = null,
+                        onError = {
+                            scope.launch {
+                                clipboard.set(indexViewModel.self.profilePic)
+                            }
+                        }
                     )
                 }
             }
@@ -122,7 +127,6 @@ private fun TopBar(drawerState: DrawerState, indexViewModel: IndexViewModel, nav
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun BottomBar(pagerState: PagerState) {
     val coroutineScope = rememberCoroutineScope()

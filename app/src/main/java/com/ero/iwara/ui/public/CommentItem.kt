@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
 import com.ero.iwara.model.comment.Comment
 import com.ero.iwara.model.comment.CommentPosterType.NORMAL
@@ -40,7 +39,6 @@ import com.ero.iwara.util.noRippleClickable
 import com.ero.iwara.util.set
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 fun CommentItem(navController: NavController, comment: Comment) {
     Box(

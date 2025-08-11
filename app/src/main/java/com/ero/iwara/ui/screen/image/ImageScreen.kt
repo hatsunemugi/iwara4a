@@ -31,7 +31,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
 import com.ero.iwara.R
 import com.ero.iwara.model.detail.image.ImageDetail
@@ -93,7 +92,6 @@ fun ImageScreen(
     }
 }
 
-@OptIn(ExperimentalCoilApi::class)
 @Composable
 private fun ImagePage(imageDetail: ImageDetail) {
     val pagerState = androidx.compose.foundation.pager.rememberPagerState(initialPage = 0, pageCount = { imageDetail.imageLinks.size })

@@ -34,7 +34,6 @@ fun TabRow(content: @Composable ()->Unit){
     }
 }
 
-@ExperimentalAnimationApi
 @Composable
 fun TabItem(pagerState: PagerState, index: Int, text: String) {
     val coroutineScope = rememberCoroutineScope()

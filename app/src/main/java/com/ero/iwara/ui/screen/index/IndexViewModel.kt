@@ -13,7 +13,8 @@ import androidx.paging.cachedIn
 import com.ero.iwara.DatabaseManager
 import com.ero.iwara.api.paging.MediaSource
 import com.ero.iwara.api.paging.SubscriptionsSource
-import com.ero.iwara.event.LoginEvent
+import com.ero.iwara.event.AppEvent
+import com.ero.iwara.event.subscribe
 import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaQueryParam
 import com.ero.iwara.model.index.MediaType
@@ -23,8 +24,6 @@ import com.ero.iwara.model.user.Self
 import com.ero.iwara.repo.MediaRepo
 import com.ero.iwara.repo.UserRepo
 import com.ero.iwara.sharedPreferencesOf
-import com.ero.iwara.util.registerListener
-import com.ero.iwara.util.unregisterListener
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -34,8 +33,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import org.greenrobot.eventbus.Subscribe
-import org.greenrobot.eventbus.ThreadMode
 import javax.inject.Inject
 
 @HiltViewModel
@@ -128,13 +125,13 @@ class IndexViewModel @Inject constructor(
     }
 
     init {
-        registerListener()
+        this.viewModelScope.subscribe<AppEvent.UserLoggedInEvent> {
+            refreshSelf()
+        }
         refreshSelf()
     }
 
-    override fun onCleared() {
-        unregisterListener()
-    }
+    override fun onCleared() { }
 
     fun refreshSelf() = viewModelScope.launch {
         loadingSelf = true
@@ -150,8 +147,8 @@ class IndexViewModel @Inject constructor(
         loadingSelf = false
     }
 
-    @Subscribe(threadMode = ThreadMode.MAIN)
-    fun onLogin(loginEvent: LoginEvent) {
-        refreshSelf()
-    }
+//    @Subscribe(threadMode = ThreadMode.MAIN)
+//    fun onLogin(loginEvent: LoginEvent) {
+//        refreshSelf()
+//    }
 }
