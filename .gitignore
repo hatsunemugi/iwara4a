@@ -13,3 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
+/app/src/test/java/com/ero/iwara/
+/app/src/androidTest/java/com/ero/iwara/
