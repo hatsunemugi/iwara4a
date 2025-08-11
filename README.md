@@ -7,7 +7,6 @@
 基于Jetpack Compose开发的 iwara 安卓app, 采用Material Design, 支持夜间模式, 支持绝大多数iwara网站上的功能。
 
 ## 🚩 已经实现的功能
-* 暴力自动重连，解决iwara土豆服务器总是无响应问题
 * 登录/查看个人信息
 * 浏览订阅更新列表
 * 播放视频
@@ -20,21 +19,17 @@
 * MVVM 架构
 * Jetpack Compose (构建UI)
 * Kotlin Coroutine (协程)
-* Okhttp + Jsoup (解析网页)
-* Retrofit (访问Restful API)
+* Okhttp + @Serializable (解析接口)
 * EventBus (事件总线)
 * Hilt (依赖注入)
-* Paging3 (分页加载)
+* Paging (分页加载)
 
 ## 📜 计划中的功能
 * 登录账号
 * 浏览 视频/图片/订阅
 * 查看个人信息
 * 管理收藏夹
+* 论坛
 * 评论
 * 中/英/日 三语言支持
-
-## 🔒 不考虑支持的功能
-* 论坛
-* 同时支持里站和外站
 
