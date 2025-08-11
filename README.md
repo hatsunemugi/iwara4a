@@ -19,7 +19,7 @@
 * MVVM 架构
 * Jetpack Compose (构建UI)
 * Kotlin Coroutine (协程)
-* Okhttp + @Serializable (解析接口)
+* Okhttp + Kotlin Serialization (解析接口)
 * EventBus (事件总线)
 * Hilt (依赖注入)
 * Paging (分页加载)
