@@ -261,7 +261,6 @@ private fun VideoInfo(
     videoDetail: VideoDetail
 ) {
     val pagerState = rememberPagerState(pageCount = {2}, initialPage = 0)
-    val coroutineScope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier

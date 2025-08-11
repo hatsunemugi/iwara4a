@@ -21,7 +21,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
-import coil.compose.rememberImagePainter
 import com.ero.iwara.R
 import com.ero.iwara.model.user.UserData
 import com.ero.iwara.ui.public.FullScreenTopBar

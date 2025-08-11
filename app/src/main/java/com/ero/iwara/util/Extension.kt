@@ -1,10 +1,7 @@
 package com.ero.iwara.util
 
 import android.content.ClipData
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.platform.Clipboard
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.toClipEntry
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone

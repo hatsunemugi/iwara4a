@@ -2,7 +2,6 @@ package com.ero.iwara.ui.public
 
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
@@ -32,7 +31,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.compose.AsyncImage
-import coil.compose.rememberImagePainter
 import com.ero.iwara.model.comment.Comment
 import com.ero.iwara.model.comment.CommentPosterType.NORMAL
 import com.ero.iwara.model.comment.CommentPosterType.OWNER

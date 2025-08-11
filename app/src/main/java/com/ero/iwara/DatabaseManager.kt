@@ -2,7 +2,6 @@ package com.ero.iwara
 
 import android.content.Context
 import com.ero.iwara.dao.UserDao
-import com.ero.iwara.model.token.AccessToken
 import com.ero.iwara.entity.UserBase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
