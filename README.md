@@ -2,7 +2,7 @@
 [![GitHub issues](https://img.shields.io/github/issues/hatsunemugi/iwara4a)](https://github.com/hatsunemugi/iwara4a/issues)
 [![GitHub forks](https://img.shields.io/github/forks/hatsunemugi/iwara4a)](https://github.com/hatsunemugi/iwara4a/network)
 [![GitHub stars](https://img.shields.io/github/stars/hatsunemugi/iwara4a)](https://github.com/hatsunemugi/iwara4a/stargazers)
-[![GitHub license](https://img.shields.io/github/license/hatsunemugi/iwara4a)](https://hatsunemugi/iwara4a/iwara4a)
+[![GitHub license](https://img.shields.io/github/license/hatsunemugi/iwara4a)](https://hatsunemugi/iwara4a/iwara4a/license)
 
 基于Jetpack Compose开发的 iwara 安卓app, 采用Material Design, 支持夜间模式, 支持绝大多数iwara网站上的功能。
 
