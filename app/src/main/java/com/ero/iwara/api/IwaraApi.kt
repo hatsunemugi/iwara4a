@@ -10,6 +10,7 @@ import com.ero.iwara.model.index.MediaList
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.model.index.SubscriptionList
+import com.ero.iwara.model.index.TagList
 import com.ero.iwara.model.session.Session
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.model.user.UserData
@@ -43,6 +44,15 @@ interface IwaraApi {
      * @return 简短的个人信息
      */
     suspend fun getSelf(session: Session): Response<Self>
+
+    /**
+     * 获取基础的个人信息
+     *
+     * @param filter 标签过滤
+     * @param page 分页
+     * @return 标签列表
+     */
+    suspend fun getTag(filter: String, page: Int): Response<TagList>
 
     /**
      * 获取订阅列表

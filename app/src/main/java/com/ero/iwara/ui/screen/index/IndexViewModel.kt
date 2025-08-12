@@ -12,6 +12,8 @@ import androidx.paging.cachedIn
 import com.ero.iwara.DatabaseManager
 import com.ero.iwara.api.paging.MediaSource
 import com.ero.iwara.api.paging.SubscriptionsSource
+import com.ero.iwara.api.paging.TagSource
+import com.ero.iwara.entity.TagBase
 import com.ero.iwara.event.AppEvent
 import com.ero.iwara.event.postFlowEvent
 import com.ero.iwara.event.subscribe
@@ -19,10 +21,12 @@ import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaQueryParam
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
+import com.ero.iwara.model.index.TagList
 import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.repo.MediaRepo
 import com.ero.iwara.repo.UserRepo
+import com.ero.iwara.result.MTag
 import com.ero.iwara.sharedPreferencesOf
 import com.ero.iwara.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -45,6 +49,29 @@ class IndexViewModel @Inject constructor(
 ) : BaseViewModel() {
     var self by mutableStateOf(Self.GUEST)
     var loadingSelf by mutableStateOf(false)
+
+    // Pager: 标签查询参数
+    private val _tagParamStateFlow = MutableStateFlow("") // 初始值
+    val tagParamState: StateFlow<String> = _tagParamStateFlow.asStateFlow()
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val tagPager: Flow<PagingData<MTag>> = _tagParamStateFlow
+        .flatMapLatest { // 当 currentParams 变化时，会取消旧的 Pager 并创建一个新的
+            Pager(
+                config = PagingConfig(pageSize = 32, initialLoadSize = 32),
+                pagingSourceFactory = {
+                    // 每次都创建一个新的 TagSource 实例，并传入当前最新的参数
+                    TagSource(
+                        it,
+                        mediaRepo,
+                        databaseManager
+                    )
+                }
+            ).flow
+        }.cachedIn(viewModelScope) // cachedIn 是重要的
+    fun updateTag(tag: String) {
+        _tagParamStateFlow.value = tag
+    }
+
 
     // Pager: 视频查询参数
     private val _videoQueryParamStateFlow = MutableStateFlow(MediaQueryParam(SortType.TREND,

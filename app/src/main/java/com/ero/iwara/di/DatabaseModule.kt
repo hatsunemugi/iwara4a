@@ -4,6 +4,7 @@ import android.content.Context
 
 import com.ero.iwara.AppDatabase
 import com.ero.iwara.DatabaseManager
+import com.ero.iwara.dao.TagDao
 import com.ero.iwara.dao.UserDao
 import dagger.Module
 import dagger.Provides
@@ -24,8 +25,14 @@ object DatabaseModule {
 
     @Singleton
     @Provides
-    fun provideNoteDao(appDatabase: AppDatabase): UserDao {
+    fun provideUserDao(appDatabase: AppDatabase): UserDao {
         return appDatabase.userDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideTagDao(appDatabase: AppDatabase): TagDao {
+        return appDatabase.tagDao()
     }
 
     @Singleton

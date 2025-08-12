@@ -12,6 +12,7 @@ import com.ero.iwara.model.index.MediaList
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.model.index.SubscriptionList
+import com.ero.iwara.model.index.TagList
 import com.ero.iwara.model.session.Session
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.model.user.UserData
@@ -21,9 +22,6 @@ import com.ero.iwara.util.autoRetry
 
 /**
  * IwaraAPI接口的具体实现
- *
- * 内部持有 iwaraParser 和 iwaraService 两个模块, 根据资源是否可以
- * 通过restful api直接访问来选择使用哪个模块获取数据
  */
 class IwaraApiImpl(
     private val iwaraParser: IwaraParser,
@@ -37,6 +35,9 @@ class IwaraApiImpl(
 
     override suspend fun getSelf(session: Session): Response<Self> =
         autoRetry { iwaraParser.getSelf(session) }
+
+    override suspend fun getTag(filter: String, page: Int): Response<TagList> =
+        autoRetry { iwaraParser.getTag(filter, page) }
 
     override suspend fun getSubscriptionList(
         session: Session,

@@ -19,9 +19,10 @@ import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.model.index.SubscriptionList
+import com.ero.iwara.model.index.TagList
 import com.ero.iwara.model.session.Session
-import com.ero.iwara.model.token.AccessToken
-import com.ero.iwara.model.token.Token
+import com.ero.iwara.result.MAccessToken
+import com.ero.iwara.result.MToken
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.model.user.UserData
 import com.ero.iwara.param.PageParam
@@ -37,6 +38,7 @@ import com.ero.iwara.result.MLinkInfo
 import com.ero.iwara.result.MPost
 import com.ero.iwara.result.MProfile
 import com.ero.iwara.result.MResult
+import com.ero.iwara.result.MTag
 import com.ero.iwara.result.MUser
 import com.ero.iwara.result.MUserInfo
 import com.ero.iwara.result.MVideo
@@ -192,7 +194,7 @@ class IwaraParser() {
         }
     suspend fun login(param: UserLogin): Response<String> {
         try {
-            val response = post<UserLogin,Token>("$api/user/login", param) ?: return Response.failed("登录失败")
+            val response = post<UserLogin,MToken>("$api/user/login", param) ?: return Response.failed("登录失败")
             return Response.success(response.token)
         }catch (ex: Exception)
         {
@@ -202,7 +204,7 @@ class IwaraParser() {
     }
     suspend fun getToken(token: String): Response<String> {
         try {
-            val response = post<AccessToken>("$api/user/token", mapOf("Authorization" to "Bearer $token")) ?: return Response.failed("token获取失败")
+            val response = post<MAccessToken>("$api/user/token", mapOf("Authorization" to "Bearer $token")) ?: return Response.failed("token获取失败")
             return Response.success(response.accessToken)
         }catch (ex: Exception)
         {
@@ -222,6 +224,19 @@ class IwaraParser() {
             val profilePic = user.user.getAvatar(file)
             Log.i(TAG, "getSelf: (nickname=$nickname, profilePic=$profilePic)")
             return Response.success(Self(id = id, email = email, username = username, nickname = nickname, avatar = profilePic))
+        } catch (exception: Exception) {
+            exception.printStackTrace()
+            return Response.failed(exception.javaClass.name)
+        }
+    }
+
+    suspend fun getTag(filter: String, page: Int): Response<TagList>
+    {
+        try {
+            val param = PageParam(filter = filter, page = page)
+            val response = get<MResult<MTag>>("$api/tags", param.map(), null) ?: return Response.failed("接口请求失败")
+            val hasNext = response.limit * (page+1) < response.count
+            return Response.success(TagList(currentPage = page, hasNext = hasNext, tagList = response.results))
         } catch (exception: Exception) {
             exception.printStackTrace()
             return Response.failed(exception.javaClass.name)

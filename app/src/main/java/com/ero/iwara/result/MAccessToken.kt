@@ -1,8 +1,8 @@
-package com.ero.iwara.model.token
+package com.ero.iwara.result
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class AccessToken(
+data class MAccessToken(
     val accessToken: String
 )

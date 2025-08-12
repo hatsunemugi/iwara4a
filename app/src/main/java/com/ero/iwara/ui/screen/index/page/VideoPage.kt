@@ -43,6 +43,7 @@ import com.ero.iwara.util.noRippleClickable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VideoListPage(navController: NavController, indexViewModel: IndexViewModel) {
+    val tagList = indexViewModel.tagPager.collectAsLazyPagingItems()
     val videoList = indexViewModel.videoPager.collectAsLazyPagingItems()
     val isRefreshing by remember { derivedStateOf { videoList.loadState.refresh is LoadState.Loading } }
     val currentQueryParam by indexViewModel.videoQueryParamState.collectAsState()
@@ -94,8 +95,13 @@ fun VideoListPage(navController: NavController, indexViewModel: IndexViewModel) 
                 {
                     item {
                         QueryParamSelector(
+                            "排序",
                             current = currentQueryParam.sort,
                             list = SortType.entries,
+                            items = tagList,
+                            onEdit = {
+                                indexViewModel.updateTag(it)
+                            },
                             onChangeType = {
                                 indexViewModel.updateVideoSort(it)
                             },

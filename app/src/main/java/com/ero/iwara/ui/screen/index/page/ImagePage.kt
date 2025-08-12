@@ -33,6 +33,7 @@ import com.ero.iwara.util.noRippleClickable
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageListPage(navController: NavController, indexViewModel: IndexViewModel){
+    val tagList = indexViewModel.tagPager.collectAsLazyPagingItems()
     val imageList = indexViewModel.imagePager.collectAsLazyPagingItems()
     val currentQueryParam by indexViewModel.imageQueryParamState.collectAsState()
     val freshState = rememberPullToRefreshState()
@@ -70,8 +71,11 @@ fun ImageListPage(navController: NavController, indexViewModel: IndexViewModel){
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     item {
                         QueryParamSelector(
+                            "排序",
                             current = currentQueryParam.sort,
                             list = SortType.entries,
+                            items = tagList,
+                            onEdit = {},
                             onChangeType = {
                                 indexViewModel.updateImageSort(it)
 //                                indexViewModel.imageQueryParam.sort = it

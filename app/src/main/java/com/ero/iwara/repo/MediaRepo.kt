@@ -7,12 +7,16 @@ import com.ero.iwara.model.index.MediaList
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.model.index.SubscriptionList
+import com.ero.iwara.model.index.TagList
 import com.ero.iwara.model.session.Session
 import javax.inject.Inject
 
 class MediaRepo @Inject constructor(
     private val iwaraApi: IwaraApi
 ) {
+    suspend fun getTag(filter: String, page: Int): Response<TagList> =
+        iwaraApi.getTag(filter, page)
+
     suspend fun getSubscriptionList(
         session: Session,
         @IntRange(from = 0) page: Int

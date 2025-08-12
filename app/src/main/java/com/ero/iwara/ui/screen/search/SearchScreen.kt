@@ -105,14 +105,11 @@ private fun Result(
                     LazyColumn(Modifier.fillMaxSize()) {
                         item {
                             QueryParamSelector(
+                                "类型",
                                 current = MediaType.VIDEO,
                                 list = MediaType.entries,
                                 onChangeType = { it ->
                                     searchViewModel.searchParam.type = it
-                                    list.refresh()
-                                },
-                                onChangeFilters = { it ->
-                                    searchViewModel.searchParam.tags = it
                                     list.refresh()
                                 }
                             )

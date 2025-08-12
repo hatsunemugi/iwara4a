@@ -4,13 +4,16 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import com.ero.iwara.dao.TagDao
 import com.ero.iwara.dao.UserDao
+import com.ero.iwara.entity.TagBase
 import com.ero.iwara.entity.UserBase
 
-@Database(entities = [UserBase::class], version = 1, exportSchema = false) // 列出实体，定义版本
+@Database(entities = [UserBase::class, TagBase::class], version = 1, exportSchema = false) // 列出实体，定义版本
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun userDao(): UserDao // Room 会自动实现这个方法
+    abstract fun tagDao(): TagDao // Room 会自动实现这个方法
 
     companion object {
         @Volatile // 确保实例的可见性

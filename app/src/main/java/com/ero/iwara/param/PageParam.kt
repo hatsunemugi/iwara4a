@@ -12,6 +12,7 @@ data class PageParam(
     val type: String? = null,
     val sort: String? = null,
     val query: String? = null,
+    val filter: String? = null,
     val subscribed: Boolean? = null
 ){
     fun map(): Map<String, String> {
@@ -28,6 +29,7 @@ data class PageParam(
         page?.let { map["page"] = it.toString() }
         limit?.let { map["limit"] = it.toString() }
         query?.let { map["query"] = it }
+        filter?.let { map["filter"] = it }
         subscribed?.let { map["subscribed"] = it.toString() }
         return map
     }

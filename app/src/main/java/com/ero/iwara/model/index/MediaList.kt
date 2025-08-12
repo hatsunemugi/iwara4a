@@ -1,5 +1,13 @@
 package com.ero.iwara.model.index
 
+import com.ero.iwara.result.MTag
+
+data class TagList(
+    val currentPage: Int,
+    val hasNext: Boolean,
+    val tagList: List<MTag>
+)
+
 data class MediaList(
     val currentPage: Int,
     val hasNext: Boolean,

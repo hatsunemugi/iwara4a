@@ -3,12 +3,24 @@ package com.ero.iwara.util
 import android.content.ClipData
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.foundation.Indication
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.toClipEntry
+import androidx.compose.ui.unit.Dp
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -97,4 +109,54 @@ fun ExoPlayer.Builder.cache(context: Context): ExoPlayer.Builder
         .setDataSourceFactory(cacheDataSourceFactory) // 关键步骤
 
     return setMediaSourceFactory(mediaSourceFactory)
+}
+
+@Composable
+fun textFieldColors(color: Color): TextFieldColors
+{
+    return TextFieldDefaults.colors(
+        focusedContainerColor = color,
+        unfocusedContainerColor = color,
+        disabledContainerColor = color,
+        errorContainerColor = color, // 如果你需要处理错误状态
+
+        // --- 指示器颜色 ---
+        focusedIndicatorColor = color,
+        unfocusedIndicatorColor = color,
+        disabledIndicatorColor = color,
+        errorIndicatorColor = color, // 如果你需要处理错误状态
+    )
+}
+
+@Composable
+fun Modifier.ripple(
+    enabled: Boolean = true,
+    bounded: Boolean = true,
+    radius: Dp = Dp.Unspecified,
+    color: Color = Color.Unspecified,
+    onClick: () -> Unit
+): Modifier = composed {
+    val interactionSource = remember { MutableInteractionSource() }
+
+    // Use the new ripple API from androidx.compose.material3
+    val indication: Indication = ripple(
+        bounded = bounded,
+        radius = radius,
+        color = if (color == Color.Unspecified) {
+            // For M3, ripple() will use themed defaults if color is Unspecified
+            // You can also access LocalRippleConfiguration for more control if needed
+            // val rippleConfiguration = LocalRippleConfiguration.current
+            // rippleConfiguration?.color ?: Color.Unspecified // Example
+            Color.Unspecified // Let the ripple() function handle the default
+        } else {
+            color
+        }
+    )
+
+    this.clickable(
+        interactionSource = interactionSource,
+        indication = indication,
+        enabled = enabled,
+        onClick = onClick
+    )
 }

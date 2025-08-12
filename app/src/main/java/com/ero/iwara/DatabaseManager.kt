@@ -2,6 +2,7 @@ package com.ero.iwara
 
 import android.content.Context
 import com.ero.iwara.dao.UserDao
+import com.ero.iwara.entity.TagBase
 import com.ero.iwara.entity.UserBase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -11,6 +12,7 @@ class DatabaseManager(context: Context) {
 
     // 获取 AppDatabase 实例，并通过它获取 userDao
     private val userDao = AppDatabase.getInstance(context.applicationContext).userDao()
+    private val tagDao = AppDatabase.getInstance(context.applicationContext).tagDao()
 
     // --- user 操作的封装 ---
     suspend fun saveUser(username: String, password: String, token: String, accessToken: String): Long {
@@ -22,6 +24,21 @@ class DatabaseManager(context: Context) {
             }
             else{
                 userDao.updateUser(user)
+                return@withContext exist.id
+            }
+        }
+    }
+
+    suspend fun saveTag(name: String, type: String, sensitive: Boolean): Long
+    {
+        return withContext(Dispatchers.IO) { // 确保在 IO 线程执行数据库操作
+            val exist = tagDao.getTagByName(name)
+            val tag = TagBase(exist?.id ?: 0, name = name, type = type, sensitive = sensitive , count = 0)
+            if(exist == null) {
+                return@withContext tagDao.insertTag(tag)
+            }
+            else{
+                tagDao.updateTag(tag)
                 return@withContext exist.id
             }
         }
