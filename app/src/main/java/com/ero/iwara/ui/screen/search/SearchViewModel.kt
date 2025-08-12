@@ -3,7 +3,6 @@ package com.ero.iwara.ui.screen.search
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -14,6 +13,7 @@ import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.repo.MediaRepo
+import com.ero.iwara.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
@@ -21,10 +21,9 @@ import javax.inject.Inject
 class SearchViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val mediaRepo: MediaRepo
-) :ViewModel() {
+) : BaseViewModel() {
     var query by mutableStateOf("")
-    var type by mutableStateOf(MediaType.VIDEO)
-    var searchParam by mutableStateOf(MediaQueryParam(SortType.DATE, emptyList()))
+    var searchParam by mutableStateOf(MediaQueryParam(SortType.DATE, MediaType.VIDEO, emptyList()))
 
     val pager by lazy {
         Pager(
@@ -38,7 +37,6 @@ class SearchViewModel @Inject constructor(
                 mediaRepo,
                 sessionManager,
                 query,
-                type,
                 searchParam
             )
         }.flow.cachedIn(viewModelScope)

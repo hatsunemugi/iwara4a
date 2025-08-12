@@ -43,7 +43,7 @@ fun FullScreenTopBar(
     modifier: Modifier = Modifier,
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
-    backgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
+    backgroundColor: Color = MaterialTheme.colorScheme.primary,
     contentColor: Color = contentColorFor(backgroundColor),
     elevation: Dp = TopAppBarDefaults.TopAppBarExpandedHeight,
 ) {

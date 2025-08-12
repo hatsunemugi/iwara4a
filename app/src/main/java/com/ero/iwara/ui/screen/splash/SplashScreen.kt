@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -32,12 +33,12 @@ fun SplashScreen(navController: NavController, splashViewModel: SplashViewModel 
 
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Box(modifier = Modifier
-                .size(80.dp)
+                .size(128.dp)
                 .clip(CircleShape)){
-                Image(modifier = Modifier.fillMaxSize(), painter = painterResource(R.drawable.logo), contentDescription = null)
+                Image(modifier = Modifier.fillMaxSize(), painter = painterResource(R.drawable.miku), contentScale = ContentScale.FillWidth, contentDescription = null)
             }
             Text(text = "IWARA", fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Color.White)
-            Text(text = "ecchi.iwara.tv", fontSize = 20.sp, color = Color.White)
+            Text(text = "www.iwara.tv", fontSize = 20.sp, color = Color.White)
         }
     }
     LaunchedEffect(Unit){

@@ -1,16 +1,13 @@
 package com.ero.iwara.model.detail.video
 
-import com.google.gson.annotations.SerializedName
+//import com.google.gson.annotations.SerializedName
 
 class VideoLink : ArrayList<VideoLinkItem>(){
 }
 
 data class VideoLinkItem(
-    @SerializedName("mime")
     val mime: String,
-    @SerializedName("resolution")
     val resolution: String,
-    @SerializedName("uri")
     val uri: String
 ){
     fun toLink() = "https:" + unescapeJava(uri).replace("\\/","/")

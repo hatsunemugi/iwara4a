@@ -11,6 +11,7 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
+import com.ero.iwara.util.cache
 
 private const val TAG = "ExoPlayerCompose"
 
@@ -18,7 +19,7 @@ private const val TAG = "ExoPlayerCompose"
 fun ExoPlayer3(modifier: Modifier = Modifier, videoLink: String) {
     val context = LocalContext.current
     val exoPlayer = remember {
-        ExoPlayer.Builder(context).build().apply {
+        ExoPlayer.Builder(context).cache(context).build().apply {
             playWhenReady = true
         }
     }
@@ -42,24 +43,4 @@ fun ExoPlayer3(modifier: Modifier = Modifier, videoLink: String) {
             Log.i(TAG, "ExoPlayer: Released the Player")
         }
     }
-    /*
-    // TODO: TEST DKVideoPlayer
-    AndroidView(modifier = modifier, factory = {
-        VideoView<ExoMediaPlayer>(it).apply {
-            setUrl(videoLink)
-            setVideoController(StandardVideoController(it).apply {
-                addDefaultControlComponent("播放视频", false)
-            })
-        }
-    }) {
-        it.setUrl(videoLink)
-        it.start()
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-
-        }
-    }
-     */
 }

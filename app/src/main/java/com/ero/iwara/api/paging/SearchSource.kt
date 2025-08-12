@@ -15,7 +15,6 @@ class SearchSource(
     private val mediaRepo: MediaRepo,
     private val sessionManager: SessionManager,
     private val query: String,
-    private val type: MediaType,
     private val mediaQueryParam: MediaQueryParam
 ) : PagingSource<Int, MediaPreview>() {
     override fun getRefreshKey(state: PagingState<Int, MediaPreview>): Int? {
@@ -39,8 +38,7 @@ class SearchSource(
             sessionManager.session,
             query,
             page,
-            type,
-            mediaQueryParam.sort
+            mediaQueryParam.type
         )
         return if (response.isSuccess()) {
             val data = response.read()

@@ -7,9 +7,9 @@ import coil.Coil
 import coil.ImageLoader
 import dagger.hilt.android.HiltAndroidApp
 import okhttp3.OkHttpClient
-import xyz.doikki.videoplayer.exo.ExoMediaPlayerFactory
-import xyz.doikki.videoplayer.player.VideoViewConfig
-import xyz.doikki.videoplayer.player.VideoViewManager
+//import xyz.doikki.videoplayer.exo.ExoMediaPlayerFactory
+//import xyz.doikki.videoplayer.player.VideoViewConfig
+//import xyz.doikki.videoplayer.player.VideoViewManager
 
 @HiltAndroidApp
 class AppContext : Application() {
@@ -36,7 +36,7 @@ class AppContext : Application() {
         // 设置为全局默认 ImageLoader
         Coil.setImageLoader(imageLoader)
         // 使用ExoPlayer解码
-        VideoViewManager.setConfig(VideoViewConfig.newBuilder().setPlayerFactory(ExoMediaPlayerFactory.create()).build())
+//        VideoViewManager.setConfig(VideoViewConfig.newBuilder().setPlayerFactory(ExoMediaPlayerFactory.create()).build())
     }
 }
 

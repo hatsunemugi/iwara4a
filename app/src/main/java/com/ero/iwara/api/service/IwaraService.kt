@@ -1,8 +1,8 @@
 package com.ero.iwara.api.service
 
-import com.ero.iwara.model.detail.video.VideoLink
-import retrofit2.http.POST
-import retrofit2.http.Path
+//import com.ero.iwara.model.detail.video.VideoLink
+//import retrofit2.http.POST
+//import retrofit2.http.Path
 
 /**
  * 使用Retrofit直接获取 RESTFUL API 资源

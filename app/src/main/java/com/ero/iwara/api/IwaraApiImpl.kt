@@ -111,15 +111,13 @@ class IwaraApiImpl(
         session: Session,
         query: String,
         page: Int,
-        type: MediaType,
-        sort: SortType
+        type: MediaType
     ): Response<MediaList> = autoRetry {
         iwaraParser.search(
             session,
             query,
             page,
-            type,
-            sort
+            type
         )
     }
 }

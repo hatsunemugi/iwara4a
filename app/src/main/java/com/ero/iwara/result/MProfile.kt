@@ -8,5 +8,5 @@ data class MProfile(
     val createdAt: String,
     val header: MHeader?,
     val updatedAt: String,
-    val user: MUser
+    val user: MUser?
 )

@@ -34,6 +34,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.ero.iwara.R
+import com.ero.iwara.model.index.SortType
 import com.ero.iwara.ui.public.MediaPreviewCard
 import com.ero.iwara.ui.public.QueryParamSelector
 import com.ero.iwara.ui.screen.index.IndexViewModel
@@ -93,8 +94,9 @@ fun VideoListPage(navController: NavController, indexViewModel: IndexViewModel) 
                 {
                     item {
                         QueryParamSelector(
-                            queryParam = currentQueryParam,
-                            onChangeSort = {
+                            current = currentQueryParam.sort,
+                            list = SortType.entries,
+                            onChangeType = {
                                 indexViewModel.updateVideoSort(it)
                             },
                             onChangeFilters =  {

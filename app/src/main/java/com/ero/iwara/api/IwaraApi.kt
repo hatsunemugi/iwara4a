@@ -134,5 +134,5 @@ interface IwaraApi {
      * @param filter 过滤条件
      * @return 资源列表
      */
-    suspend fun search(session: Session, query: String, @IntRange(from = 0) page: Int, type: MediaType, sort: SortType): Response<MediaList>
+    suspend fun search(session: Session, query: String, @IntRange(from = 0) page: Int, type: MediaType): Response<MediaList>
 }

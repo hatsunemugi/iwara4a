@@ -49,9 +49,11 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.ero.iwara.model.index.MediaPreview
+import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.ui.public.FullScreenTopBar
 import com.ero.iwara.ui.public.MediaPreviewCard
 import com.ero.iwara.ui.public.QueryParamSelector
+import com.ero.iwara.util.HandleMessage
 import com.ero.iwara.util.noRippleClickable
 
 @Composable
@@ -59,7 +61,7 @@ fun SearchScreen(navController: NavController, searchViewModel: SearchViewModel 
     Scaffold(
         topBar = {
             FullScreenTopBar(
-                modifier = Modifier.height(32.dp),
+                modifier = Modifier.height(48.dp),
                 title = {
                     Text(text = "搜索")
                 },
@@ -91,6 +93,7 @@ private fun Result(
     searchViewModel: SearchViewModel,
     list: LazyPagingItems<MediaPreview>
 ) {
+    HandleMessage(searchViewModel.message)
     if (list.loadState.refresh !is LoadState.Error) {
         Crossfade(searchViewModel.query) {
             if (it.isNotBlank()) {
@@ -102,9 +105,10 @@ private fun Result(
                     LazyColumn(Modifier.fillMaxSize()) {
                         item {
                             QueryParamSelector(
-                                queryParam = searchViewModel.searchParam,
-                                onChangeSort = { it ->
-                                    searchViewModel.searchParam.sort = it
+                                current = MediaType.VIDEO,
+                                list = MediaType.entries,
+                                onChangeType = { it ->
+                                    searchViewModel.searchParam.type = it
                                     list.refresh()
                                 },
                                 onChangeFilters = { it ->

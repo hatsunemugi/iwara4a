@@ -21,11 +21,13 @@ data class PageParam(
         rating?.let { map["rating"] = it }
         tags?.ifEmpty { null }?.let { map["tags"] = it }
         sort?.let { map["sort"] = it }
+        type?.let { map["type"] = it}
         page?.let { map["page"] = it.toString() }
         limit?.let { map["limit"] = it.toString() }
         user?.let { map["user"] = it }
         page?.let { map["page"] = it.toString() }
         limit?.let { map["limit"] = it.toString() }
+        query?.let { map["query"] = it }
         subscribed?.let { map["subscribed"] = it.toString() }
         return map
     }

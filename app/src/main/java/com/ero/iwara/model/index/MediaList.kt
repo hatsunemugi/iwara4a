@@ -8,6 +8,7 @@ data class MediaList(
 
 data class MediaQueryParam(
     var sort: SortType,
+    var type: MediaType,
     var tags: List<String>
 )
 

@@ -8,13 +8,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.ero.iwara.DatabaseManager
 import com.ero.iwara.event.AppEvent
-import com.ero.iwara.event.LoginEvent
 import com.ero.iwara.event.postFlowEvent
-import com.ero.iwara.model.session.Session
 import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.repo.UserRepo
 import com.ero.iwara.sharedPreferencesOf
-import com.ero.iwara.util.postEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,7 +22,7 @@ class LoginViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val databaseManager: DatabaseManager
 ): ViewModel() {
-    var userName by mutableStateOf("")
+    var email by mutableStateOf("")
     var password by mutableStateOf("")
     var token by mutableStateOf("")
     var accessToken by mutableStateOf("")
@@ -34,7 +31,7 @@ class LoginViewModel @Inject constructor(
 
     init {
         val sharedPreferences = sharedPreferencesOf("session")
-        userName = sharedPreferences.getString("username","")!!
+        email = sharedPreferences.getString("email","")!!
         password = sharedPreferences.getString("password","")!!
     }
 
@@ -44,11 +41,11 @@ class LoginViewModel @Inject constructor(
             // save
             val sharedPreferences = sharedPreferencesOf("session")
             sharedPreferences.edit {
-                putString("username", userName)
+                putString("email", email)
                 putString("password", password)
             }
 
-            val tokenResponse = userRepo.login(userName, password)
+            val tokenResponse = userRepo.login(email, password)
 
 
             // call event
@@ -59,8 +56,8 @@ class LoginViewModel @Inject constructor(
                 {
                     accessToken = accessResponse.read()
                     sessionManager.update(token, accessToken)
-                    databaseManager.saveUser(userName, password, token, accessToken)
-                    postFlowEvent(AppEvent.UserLoggedInEvent(userName, password))
+                    databaseManager.saveUser(email, password, token, accessToken)
+                    postFlowEvent(AppEvent.UserLoggedInEvent(email, password))
                     result(true)
                 }
                 else{

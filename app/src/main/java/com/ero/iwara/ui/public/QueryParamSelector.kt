@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.ero.iwara.model.index.MediaQueryParam
+import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.MaterialDialogButtons
@@ -29,24 +30,25 @@ import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import com.vanpra.composematerialdialogs.title
 
 @Composable
-fun QueryParamSelector(
-    queryParam: MediaQueryParam,
-    onChangeSort: (sort: SortType) -> Unit,
+fun <T> QueryParamSelector(
+    current: T,
+    list: List<T>,
+    onChangeType: (type: T) -> Unit,
     onChangeFilters: (filters: List<String>) -> Unit
-) {
-    var sort by remember { mutableStateOf(SortType.TREND) }
+)where T: Enum<T> {
+    var type by remember { mutableStateOf(current) }
     val tags by remember { mutableStateOf(listOf<String>()) }
     val state = rememberMaterialDialogState()
     val sortDialog =  MaterialDialog(state) {
         title("选择排序条件")
         listItemsSingleChoice(
-            list = SortType.entries.map { it.name },
+            list = list.map { it.name },
             onChoiceChange = {
-                sort = SortType.entries[it]
-                onChangeSort(sort)
+                type = list[it]
+                onChangeType(type)
                 state.hide()
             },
-            initialSelection = sort.ordinal,
+            initialSelection = type.ordinal,
             waitForPositiveButton = false,
         )
         MaterialDialogButtons(this).button("确定") { }
@@ -65,7 +67,7 @@ fun QueryParamSelector(
                     .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(2.dp))
                     .padding(4.dp)
             ) {
-                Text(text = queryParam.sort.name)
+                Text(text = type.name)
             }
         }
     }
@@ -75,8 +77,9 @@ fun QueryParamSelector(
 @Composable
 private fun Preview() {
     QueryParamSelector(
-        queryParam = MediaQueryParam(SortType.DATE, listOf("created:2021")),
-        onChangeSort = { /*TODO*/ }) {
+        current = MediaType.VIDEO,
+        list = MediaType.entries,
+        onChangeType = { /*TODO*/ }) {
 
     }
 }

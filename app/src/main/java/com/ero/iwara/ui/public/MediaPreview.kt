@@ -11,13 +11,10 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalClipboard
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -26,17 +23,14 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.ero.iwara.R
+import com.ero.iwara.event.AppEvent
+import com.ero.iwara.event.postFlowEvent
 import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.MediaType.*
-import com.ero.iwara.util.set
-import kotlinx.coroutines.launch
 
 @Composable
 fun MediaPreviewCard(navController: NavController, mediaPreview: MediaPreview) {
-    val context = LocalContext.current
-    val clipboard = LocalClipboard.current
-    val scope = rememberCoroutineScope()
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -58,16 +52,10 @@ fun MediaPreviewCard(navController: NavController, mediaPreview: MediaPreview) {
                     model = mediaPreview.previewPic, // 直接传递图片 URL 或数据模型
                     contentDescription = null, // 或者提供有意义的描述
                     onError = {
-                        Toast.makeText(context,mediaPreview.previewPic, Toast.LENGTH_SHORT).show()
-                        scope.launch {
-                            clipboard.set(mediaPreview.previewPic)
-                        }
+                        postFlowEvent(AppEvent.GenericMessageEvent(mediaPreview.previewPic))
                     },
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.FillWidth, // 其他 Image 参数可以直接在 AsyncImage 上设置
-                    // placeholder = painterResource(R.drawable.placeholder), // 可选：占位图
-                    // error = painterResource(R.drawable.error_image),       // 可选：错误图
-                    // fallback = painterResource(R.drawable.fallback_image)  // 可选：当 model 为 null 时的后备图
                 )
                 CompositionLocalProvider(
                     LocalTextStyle provides TextStyle.Default.copy(color = Color.White),

@@ -1,6 +1,7 @@
 package com.ero.iwara.result
 
 import kotlinx.serialization.Serializable
+import kotlin.math.min
 
 @Serializable
 data class MFile(
@@ -28,7 +29,8 @@ data class MFile(
     }
     fun getAvatar(domain: String): String
     {
-        if(mime == "mine") return getOrigin(domain)
+        if(mime == "image/gif") return getOrigin(domain)
+        if(mime == "image/jpeg" && name.endsWith("gif")) name.replace("gif", "jpg")
         return "$domain/image/avatar/${id}/${name}"
     }
     fun getOrigin(domain: String): String

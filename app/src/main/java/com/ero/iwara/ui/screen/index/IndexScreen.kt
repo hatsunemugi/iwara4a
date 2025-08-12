@@ -1,6 +1,5 @@
 package com.ero.iwara.ui.screen.index
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -14,23 +13,22 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.DrawerValue
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -42,7 +40,8 @@ import com.ero.iwara.ui.public.FullScreenTopBar
 import com.ero.iwara.ui.screen.index.page.ImageListPage
 import com.ero.iwara.ui.screen.index.page.SubPage
 import com.ero.iwara.ui.screen.index.page.VideoListPage
-import com.ero.iwara.util.set
+import com.ero.iwara.util.HandleMessage
+import com.ero.iwara.util.send
 import kotlinx.coroutines.launch
 
 @Composable
@@ -67,9 +66,7 @@ fun IndexScreen(navController: NavController, indexViewModel: IndexViewModel = h
         )
         {
             HorizontalPager(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(it),
+                modifier = Modifier.fillMaxSize().padding(it),
                 state = pagerState
             ) { it ->
                 when (it) {
@@ -90,10 +87,11 @@ fun IndexScreen(navController: NavController, indexViewModel: IndexViewModel = h
 
 @Composable
 private fun TopBar(drawerState: DrawerState, indexViewModel: IndexViewModel, navController: NavController) {
+    val user by remember { derivedStateOf { indexViewModel.self } }
     val scope = rememberCoroutineScope()
-    val clipboard = LocalClipboard.current
+    HandleMessage(indexViewModel.message)
     FullScreenTopBar(
-        modifier = Modifier.height(32.dp),
+        modifier = Modifier.height(48.dp),
         title = {
             Text(text = stringResource(R.string.app_name))
         },
@@ -107,13 +105,11 @@ private fun TopBar(drawerState: DrawerState, indexViewModel: IndexViewModel, nav
                     .size(30.dp)
                     .clip(CircleShape)) {
                     AsyncImage(
-                        model = indexViewModel.self.profilePic,
+                        model = user.avatar,
                         modifier = Modifier.fillMaxSize(),
                         contentDescription = null,
                         onError = {
-                            scope.launch {
-                                clipboard.set(indexViewModel.self.profilePic)
-                            }
+                            send(user.avatar)
                         }
                     )
                 }
@@ -136,9 +132,7 @@ private fun BottomBar(pagerState: PagerState) {
         NavigationItem(name = "关注", icon = R.drawable.subscriptions),
         NavigationItem(name = "图片", icon = R.drawable.image_icon)
     )
-    NavigationBar(modifier = Modifier,
-        // Add if you are not using Scaffold or if it's explicitly needed.
-        containerColor = MaterialTheme.colorScheme.surface)
+    NavigationBar(modifier = Modifier)
     {
         navItems.forEachIndexed { index, data -> // screenData is your NavigationItem instance
             val selected = pagerState.currentPage == index // Use appropriate page index
@@ -160,14 +154,7 @@ private fun BottomBar(pagerState: PagerState) {
                 },
                 label = {
                     Text(text = data.name)
-                },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    indicatorColor = MaterialTheme.colorScheme.secondaryContainer
-                )
+                }
             )
         }
     }

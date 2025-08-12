@@ -4,6 +4,8 @@ import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
 import com.ero.iwara.api.Response
+import com.ero.iwara.event.AppEvent
+import com.ero.iwara.event.postFlowEvent
 import com.ero.iwara.model.comment.Comment
 import com.ero.iwara.model.comment.CommentList
 import com.ero.iwara.model.comment.CommentPosterType
@@ -42,7 +44,8 @@ import com.ero.iwara.sharedPreferencesOf
 import com.ero.iwara.util.format
 import com.ero.iwara.util.okhttp.CookieJarHelper
 import com.ero.iwara.util.okhttp.await
-import com.google.gson.Gson
+import com.ero.iwara.util.toQuery
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -71,31 +74,29 @@ class IwaraParser() {
     fun getClient(): OkHttpClient
     {
         val client = OkHttpClient.Builder()
-            .connectTimeout(25, TimeUnit.SECONDS)
-            .readTimeout(25, TimeUnit.SECONDS)
-            .writeTimeout(25, TimeUnit.SECONDS)
+            .connectTimeout(60, TimeUnit.SECONDS)
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
             .cookieJar(CookieJarHelper())
             .build()
         return client
     }
-    inline fun <reified T> decode(json: String?):T?
+    inline fun <reified T> CoroutineScope.decode(json: String?):T?
     {
+        if(json.isNullOrEmpty()) return null
         try
         {
-            if(json.isNullOrEmpty()) return null
             val model = Json.decodeFromString<T>(json)
             return model
         }
         catch (ex: Exception)
         {
-            ex.printStackTrace()
-            return null
+            return null.apply { postFlowEvent(AppEvent.GenericMessageEvent("结果：${json.take(100)}-错误:${ex.toString()}")) }
         }
     }
-
     suspend inline fun <reified E> get(url: String, param: Map<String, String>? = null, headers: Map<String, String>? = null): E? =
-        withContext(Dispatchers.IO) {
-            try{
+         withContext(Dispatchers.IO) {
+            try {
                 val httpClient = getClient()
                 val builder = url.toHttpUrlOrNull()?.newBuilder()
                     ?: return@withContext null
@@ -111,12 +112,11 @@ class IwaraParser() {
                 val response = httpClient.newCall(request.build()).await()
                 val json = response.body.string()
                 val model = decode<E>(json)
-                return@withContext model
+                return@withContext model.apply { if(model == null) postFlowEvent(AppEvent.GenericMessageEvent("接口地址：$url-参数${param.toQuery()}-标头${headers.toQuery()}")) }
 
-            }catch (ex: Exception)
+            } catch (ex: Exception)
             {
-                ex.printStackTrace()
-                return@withContext null
+                return@withContext null.apply { postFlowEvent(AppEvent.GenericMessageEvent("接口地址：$url-参数${param.toQuery()}-标头${headers.toQuery()}-错误${ex.toString()}")) }
             }
         }
     suspend inline fun <reified E> delete(url: String, param: Map<String, String>? = null, headers: Map<String, String>? = null): E? =
@@ -138,20 +138,20 @@ class IwaraParser() {
                 val response = httpClient.newCall(request.build()).await()
                 val json = response.body.string()
                 val model = decode<E>(json)
-                return@withContext model
+                return@withContext model.apply { if(model == null) postFlowEvent(AppEvent.GenericMessageEvent("接口地址：$url-参数${param.toQuery()}-标头${headers.toQuery()}")) }
             }
             catch (ex: Exception)
             {
-                ex.printStackTrace()
-                return@withContext null
+                return@withContext null.apply { postFlowEvent(AppEvent.GenericMessageEvent("接口地址：$url-参数${param.toQuery()}-标头${headers.toQuery()}-错误${ex.toString()}")) }
             }
         }
     suspend inline fun <reified T, reified E> post(url: String, param: T, headers: Map<String, String>? = null): E? =
         withContext(Dispatchers.IO) {
+            val encode = Json.encodeToString(param)
             try
             {
                 val httpClient = getClient()
-                val body: RequestBody = Json.encodeToString(param).toRequestBody("application/json; charset=utf-8".toMediaType())
+                val body: RequestBody = encode.toRequestBody("application/json; charset=utf-8".toMediaType())
                 val request = Request.Builder()
                     .url(url)
                     .post(body)
@@ -161,12 +161,11 @@ class IwaraParser() {
                 val response = httpClient.newCall(request.build()).await()
                 val json = response.body.string()
                 val model = decode<E>(json)
-                return@withContext model
+                return@withContext model.apply { if(model == null) postFlowEvent(AppEvent.GenericMessageEvent("接口地址：$url-参数${param}-标头${headers.toQuery()}")) }
             }
             catch (ex: Exception)
             {
-                ex.printStackTrace()
-                return@withContext null
+                return@withContext null.apply { postFlowEvent(AppEvent.GenericMessageEvent("接口地址：$url-参数${param}-标头${headers.toQuery()}-错误${ex.toString()}")) }
             }
         }
     suspend inline fun <reified T> post(url: String, headers: Map<String, String>? = null): T? =
@@ -184,12 +183,11 @@ class IwaraParser() {
                 val response = httpClient.newCall(request.build()).await()
                 val json = response.body.string()
                 val model = decode<T>(json)
-                return@withContext model
+                return@withContext model.apply { if(model == null) postFlowEvent(AppEvent.GenericMessageEvent("接口地址：$url-标头${headers.toQuery()}")) }
             }
             catch (ex: Exception)
             {
-                ex.printStackTrace()
-                return@withContext null
+                return@withContext null.apply { postFlowEvent(AppEvent.GenericMessageEvent("接口地址：$url-标头${headers.toQuery()}-错误${ex.toString()}")) }
             }
         }
     suspend fun login(param: UserLogin): Response<String> {
@@ -216,15 +214,14 @@ class IwaraParser() {
     suspend fun getSelf(session: Session): Response<Self>
     {
         try {
-            val user = post<MUserInfo>("$api/user", session.map()) ?: return Response.failed("接口请求失败")
-            Log.i(TAG, "getSelf: Start...")
-
+            val user = get<MUserInfo>("$api/user", null, session.map()) ?: return Response.failed("接口请求失败")
             val id = user.user.id
-            val avatar = user.user.avatar
+            val email = user.user.email ?: ""
+            val username = user.user.username
             val nickname = user.user.name
-            val profilePic = "$file/image/avatar/${avatar?.id}/${avatar?.name}"
+            val profilePic = user.user.getAvatar(file)
             Log.i(TAG, "getSelf: (nickname=$nickname, profilePic=$profilePic)")
-            return Response.success(Self(id = id, nickname = nickname, profilePic = profilePic))
+            return Response.success(Self(id = id, email = email, username = username, nickname = nickname, avatar = profilePic))
         } catch (exception: Exception) {
             exception.printStackTrace()
             return Response.failed(exception.javaClass.name)
@@ -282,6 +279,7 @@ class IwaraParser() {
                 it.getLargeImage(file)
             }
             val authorId = response.user.id
+            val authorName = response.user.name
             val authorPic = response.user.getAvatar(file)
             val watches = response.numViews.toString()
 
@@ -291,6 +289,7 @@ class IwaraParser() {
                     title = title,
                     imageLinks = imageLinks,
                     authorId = authorId,
+                    authorName = authorName,
                     authorProfilePic = authorPic,
                     watches = watches
                 )
@@ -320,7 +319,8 @@ class IwaraParser() {
             val nickname = response.user.name
             val username = response.user.username
             val authorPic = response.user.getAvatar(file)
-            val related = get<MResult<MVideo>>("$api/video/${response.id}/related",null, session.map())
+            val related = get<MResult<MVideo>>("$api/videos", PageParam(rating = "ecchi", user = authorId, exclude = response.id, limit = 32).map(), session.map())
+//            val related = get<MResult<MVideo>>("$api/video/${response.id}/related",null, session.map())
             // 更多视频
             val moreVideo = related?.results?.map {
                 val id = it.id
@@ -519,11 +519,11 @@ class IwaraParser() {
             val user = response.user
             return Response.success(
                 UserData(
-                    userId = user.username,
-                    username = user.name,
-                    pic = user.getAvatar(file),
-                    joinDate = user.createdAt.format(),
-                    lastSeen = user.seenAt.format(),
+                    userId = user?.username ?: "",
+                    username = user?.name ?: "",
+                    pic = user?.getAvatar(file) ?: "",
+                    joinDate = user?.createdAt.format(),
+                    lastSeen = user?.seenAt.format(),
                     about = response.body ?: ""
                 )
             )
@@ -533,10 +533,10 @@ class IwaraParser() {
         }
     }
 
-    suspend fun search(session: Session, query: String, page: Int, type: MediaType, sort: SortType): Response<MediaList>
+    suspend fun search(session: Session, query: String, page: Int, type: MediaType): Response<MediaList>
     {
         try {
-            val param = PageParam(page = page, type = type.toString(), sort = sort.value, query = query)
+            val param = PageParam(page = page, type = type.value, query = query)
             val result = when(type)
             {
                 MediaType.IMAGE -> get<MResult<MImage>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }

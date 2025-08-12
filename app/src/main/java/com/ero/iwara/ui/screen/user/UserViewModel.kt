@@ -5,6 +5,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.ero.iwara.event.AppEvent
+import com.ero.iwara.event.subscribe
 import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.model.user.UserData
 import com.ero.iwara.repo.UserRepo

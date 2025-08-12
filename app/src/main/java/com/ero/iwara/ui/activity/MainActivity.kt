@@ -13,12 +13,16 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -46,6 +50,30 @@ class MainActivity : ComponentActivity() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
         setContent {
+            val useDarkIcons = !isSystemInDarkTheme()
+            DisposableEffect(useDarkIcons) { // key 为 useDarkIcons，当主题切换时会重新执行
+                // 2. 获取 WindowInsetsControllerCompat
+                val controller = WindowInsetsControllerCompat(window, window.decorView)
+                // 5. 控制状态栏内容的颜色 (图标等)
+                // true 表示浅色背景，需要深色图标；false 表示深色背景，需要浅色图标
+                controller.isAppearanceLightStatusBars = useDarkIcons
+
+                // 6. 控制导航栏内容的颜色 (按钮等)
+                // true 表示浅色背景，需要深色按钮；false 表示深色背景，需要浅色按钮
+                // 注意：导航栏图标颜色的可定制性在不同 Android 版本和设备上可能有限
+                controller.isAppearanceLightNavigationBars = useDarkIcons
+
+
+                // 如果需要完全隐藏系统栏 (通常用于特定全屏内容，如视频播放)
+                 controller.hide(WindowInsetsCompat.Type.statusBars())
+                 controller.hide(WindowInsetsCompat.Type.navigationBars())
+                 controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+                onDispose {
+                    // 可选：如果需要在 Composable 离开时恢复默认设置，可以在这里操作
+                    // 对于 Activity 级别的设置，通常不需要
+                }
+            }
             CompositionLocalProvider(LocalScreenOrientation provides screenOrientation) {
                 Index()
             }

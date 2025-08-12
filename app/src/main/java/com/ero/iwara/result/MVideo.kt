@@ -16,7 +16,7 @@ data class MVideo(
     val createdAt: String,
     val customThumbnail: MFile?,
     val embedUrl: String?,
-    val file: MFile,
+    val file: MFile?,
     val fileUrl: String? = null,
     val id: String,
     val liked: Boolean,
@@ -51,7 +51,7 @@ data class MVideo(
     fun getPreviewPic(domain: String): String
     {
         return customThumbnail?.getThumbnail(domain)
-            ?: "$domain/image/thumbnail/${file.id}/thumbnail-${thumbnail.toString().padStart(2,'0')}.jpg"
+            ?: "$domain/image/thumbnail/${file?.id}/thumbnail-${thumbnail.toString().padStart(2,'0')}.jpg"
     }
     fun getAnimatePic(domain: String): String
     {
@@ -60,7 +60,7 @@ data class MVideo(
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     fun version(): String
     {
-        val input = "${file.id}_${fileUrl.query()["expires"]}_5nFp9kmbNnHdAFhaqMvt"
+        val input = "${file?.id}_${fileUrl.query()["expires"]}_5nFp9kmbNnHdAFhaqMvt"
 
         // 2. 获取 SHA-1 MessageDigest 实例
         val digest = MessageDigest.getInstance("SHA-1")

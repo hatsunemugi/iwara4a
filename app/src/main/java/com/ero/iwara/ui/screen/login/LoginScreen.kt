@@ -125,8 +125,8 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
         // Username
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = loginViewModel.userName,
-            onValueChange = { loginViewModel.userName = it },
+            value = loginViewModel.email,
+            onValueChange = { loginViewModel.email = it },
             label = {
                 Text(
                     text = "用户名"
@@ -175,7 +175,7 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
         Button(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
-                if (loginViewModel.userName.isBlank() || loginViewModel.password.isBlank()) {
+                if (loginViewModel.email.isBlank() || loginViewModel.password.isBlank()) {
                     Toast.makeText(context, "用户名或密码不能为空！", Toast.LENGTH_SHORT).show()
                     return@Button
                 }
@@ -231,7 +231,7 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
 @Composable
 private fun TopBar(navController: NavController) {
     FullScreenTopBar(
-        modifier = Modifier.height(64.dp),
+        modifier = Modifier.height(48.dp),
         title = {
             Text(text = "登录账号")
         }

@@ -41,7 +41,7 @@ class MediaRepo @Inject constructor(
     suspend fun loadComment(session: Session, mediaType: MediaType, authorId: String, mediaId: String, page: Int) =
         iwaraApi.getCommentList(session, mediaType, authorId, mediaId, page)
 
-    suspend fun search(session: Session, query: String, page: Int, type: MediaType, sort: SortType): Response<MediaList> = iwaraApi.search(
-        session, query, page, type, sort
+    suspend fun search(session: Session, query: String, page: Int, type: MediaType): Response<MediaList> = iwaraApi.search(
+        session, query, page, type
     )/**/
 }

@@ -6,6 +6,7 @@ data class ImageDetail(
     val imageLinks: List<String>,
 
     val authorId: String,
+    val authorName: String,
     val authorProfilePic: String,
 
     val watches: String
@@ -15,6 +16,7 @@ data class ImageDetail(
             "",
             "",
             emptyList(),
+            "",
             "",
             "",
             ""

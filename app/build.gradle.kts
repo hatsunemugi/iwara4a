@@ -8,9 +8,9 @@ plugins {
     alias(libs.plugins.hilt.gradle)
     alias(libs.plugins.ksp)
 }
-hilt {
-    enableAggregatingTask = false
-}
+//hilt {
+//    enableAggregatingTask = false
+//}
 android {
     namespace = "com.ero.iwara"
     compileSdk = 36
@@ -58,11 +58,7 @@ dependencies {
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
     implementation(libs.material)
-    implementation(libs.dkplayer.java)
-    implementation(libs.dkplayer.ui)
-    implementation(libs.player.exo)
     implementation(libs.exoplayer)
-    implementation(libs.eventbus)
     implementation(libs.material3)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.paging.runtime.ktx)
@@ -77,19 +73,10 @@ dependencies {
     implementation(libs.androidx.media3.ui)
     implementation(libs.kotlinx.datetime) // 替换为最新版本
     implementation(libs.kotlinx.serialization.core) // 使用最新的稳定版本
-    // Kotlinx Serialization JSON format (用于 Json 类)
     implementation(libs.kotlinx.serialization.json) // 使用最新的稳定版本
-    // 状态栏颜色
-    // implementation(libs.accompanist.systemuicontroller)
-    // Coil
     implementation(libs.coil.gif)
     implementation(libs.coil.compose)
-    // Retrofit
     implementation(libs.okhttp)
-    implementation(libs.converter.gson)
-    implementation(libs.logging.interceptor)
-    // JSOUP
-    implementation(libs.jsoup)
     // 约束布局
     implementation(libs.androidx.constraintlayout.compose)
     // 图标扩展
