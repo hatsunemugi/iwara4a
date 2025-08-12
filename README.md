@@ -4,7 +4,9 @@
 [![GitHub stars](https://img.shields.io/github/stars/hatsunemugi/iwara4a)](https://github.com/hatsunemugi/iwara4a/stargazers)
 [![GitHub license](https://img.shields.io/github/license/hatsunemugi/iwara4a?style=flat-square)](https://github.com/hatsunemugi/iwara4a/blob/main/LICENSE)
 
-基于Jetpack Compose开发的 iwara 安卓app, 采用Material Design, 支持夜间模式, 支持绝大多数iwara网站上的功能。
+本项目基于 [iwara4a](https://github.com/kodeartisan/iwara4a) 
+
+基于Jetpack Compose开发的 iwara 安卓app, 采用Material Design, 更换了过时的接口以及中间件，支持所有原版iwara4a的功能。
 
 ## 🚩 已经实现的功能
 * 登录/查看个人信息
