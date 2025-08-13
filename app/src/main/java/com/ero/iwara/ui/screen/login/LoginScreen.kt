@@ -3,7 +3,6 @@ package com.ero.iwara.ui.screen.login
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,13 +47,14 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ero.iwara.R
 import com.ero.iwara.ui.public.FullScreenTopBar
+import com.ero.iwara.util.HandleMessage
+import com.ero.iwara.util.send
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.iconTitle
 import com.vanpra.composematerialdialogs.message
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import com.vanpra.composematerialdialogs.title
 
-@ExperimentalAnimationApi
 @Composable
 fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = hiltViewModel()) {
     Scaffold(
@@ -80,6 +80,7 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
     }
     val progressState = rememberMaterialDialogState(false)
     val failureState = rememberMaterialDialogState(false)
+    HandleMessage(loginViewModel.message, false)
     // 登录进度对话框
     MaterialDialog(progressState){
         iconTitle(
@@ -176,7 +177,7 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
             modifier = Modifier.fillMaxWidth(),
             onClick = {
                 if (loginViewModel.email.isBlank() || loginViewModel.password.isBlank()) {
-                    Toast.makeText(context, "用户名或密码不能为空！", Toast.LENGTH_SHORT).show()
+                    send("用户名或密码不能为空")
                     return@Button
                 }
 
@@ -185,7 +186,7 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
                     // 处理结果
                     if (it) {
                         // 登录成功
-                        Toast.makeText(context, "登录成功-${loginViewModel.token.length}-${loginViewModel.accessToken.length}", Toast.LENGTH_SHORT).show()
+                        send("登录成功-${loginViewModel.token.length}-${loginViewModel.accessToken.length}")
                         navController.navigate("index"){
                             popUpTo("login"){
                                 inclusive = true
@@ -216,7 +217,7 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
                 onClick = {
                     val intent = Intent(
                         Intent.ACTION_VIEW,
-                        "https://ecchi.iwara.tv/user/register".toUri()
+                        "https://www.iwara.tv/user/register".toUri()
                     )
                     context.startActivity(intent)
                 }

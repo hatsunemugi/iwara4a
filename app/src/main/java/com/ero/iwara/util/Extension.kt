@@ -77,14 +77,14 @@ fun send(message: String)
 }
 
 @Composable
-fun HandleMessage(
-    flow: Flow<String>
-) {
+fun HandleMessage(flow: Flow<String>, copy: Boolean = true)
+{
     val context = LocalContext.current
     val clipboard = LocalClipboard.current
     LaunchedEffect(flow) { // 如果 messagesFlow 实例是稳定的，也可以用 Unit
-        flow.collectLatest { Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            clipboard.set(it)
+        flow.collectLatest {
+            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            if(copy) clipboard.set(it)
         }
     }
 }

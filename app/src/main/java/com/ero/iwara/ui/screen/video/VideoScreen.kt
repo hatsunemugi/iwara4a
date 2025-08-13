@@ -3,14 +3,11 @@ package com.ero.iwara.ui.screen.video
 import android.app.Activity
 import android.content.pm.ActivityInfo
 import android.content.res.Configuration
-import android.os.Build
 import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.LocalActivity
-import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -61,7 +58,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -69,7 +65,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -96,10 +91,6 @@ import com.ero.iwara.ui.theme.PINK
 import com.ero.iwara.util.noRippleClickable
 import com.ero.iwara.util.shareMedia
 
-
-
-@OptIn(ExperimentalAnimationApi::class)
-@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 fun VideoScreen(
     navController: NavController,
@@ -107,32 +98,21 @@ fun VideoScreen(
     videoViewModel: VideoViewModel = hiltViewModel()
 ) {
     val orientation = LocalScreenOrientation.current
-    val context = LocalActivity.current //LocalContext.current as Activity
-    val view = LocalView.current
-    // 判断视频是否加载了
-//    fun isVideoLoaded() =
-//        videoViewModel.videoDetail != VideoDetail.LOADING && !videoViewModel.error && !videoViewModel.isLoading
+    val context = LocalActivity.current
 
-//    fun getTitle() =
-//        if (videoViewModel.isLoading) "加载中" else if (isVideoLoaded()) videoViewModel.videoDetail.title else if (videoViewModel.error) "加载失败" else "视频页面"
     val isVideoLoaded by remember { derivedStateOf { videoViewModel.videoDetail != VideoDetail.LOADING && !videoViewModel.error && !videoViewModel.isLoading } }
     val getTitle by remember { derivedStateOf { if (videoViewModel.isLoading) "加载中" else if (isVideoLoaded) videoViewModel.videoDetail.title else if (videoViewModel.error) "加载失败" else "视频页面" } }
     val videoLink by remember { derivedStateOf { videoViewModel.videoDetail.links.firstOrNull()?.src?.view ?: "" } }
-//    var videoLink by remember { mutableStateOf(videoViewModel.videoDetail.link) }
 
     // 加载视频
     LaunchedEffect(Unit) {
         videoViewModel.loadVideo(videoId)
     }
 
-    SystemUiController(activity = context, view = view, orientation = orientation, isVideoLoaded = isVideoLoaded)
     // 响应旋转
-
-    // 处理返回
     BackHandler(isVideoLoaded && orientation == Configuration.ORIENTATION_LANDSCAPE) {
         context?.let { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
     }
-
 
     Scaffold(
         topBar = {
@@ -222,7 +202,6 @@ fun VideoScreen(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.R)
 @Composable
 private fun SystemUiController(
     activity: Activity?,
@@ -239,8 +218,7 @@ private fun SystemUiController(
         if (isVideoLoaded) {
             if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
                 insetsController.hide(WindowInsetsCompat.Type.systemBars())
-                insetsController.systemBarsBehavior =
-                    WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
             } else {
                 insetsController.show(WindowInsetsCompat.Type.systemBars())
             }

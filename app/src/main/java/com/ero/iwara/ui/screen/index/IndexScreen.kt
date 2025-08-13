@@ -91,7 +91,7 @@ private fun TopBar(drawerState: DrawerState, indexViewModel: IndexViewModel, nav
     val scope = rememberCoroutineScope()
     HandleMessage(indexViewModel.message)
     FullScreenTopBar(
-        modifier = Modifier.height(48.dp),
+        modifier = Modifier.height(64.dp).padding(horizontal = 16.dp),
         title = {
             Text(text = stringResource(R.string.app_name))
         },
