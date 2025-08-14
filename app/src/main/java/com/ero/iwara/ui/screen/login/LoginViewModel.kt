@@ -12,7 +12,6 @@ import com.ero.iwara.event.postFlowEvent
 import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.repo.UserRepo
 import com.ero.iwara.sharedPreferencesOf
-import com.ero.iwara.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -22,7 +21,7 @@ class LoginViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val sessionManager: SessionManager,
     private val databaseManager: DatabaseManager
-): BaseViewModel() {
+): ViewModel() {
     var email by mutableStateOf("")
     var password by mutableStateOf("")
     var token by mutableStateOf("")

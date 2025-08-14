@@ -1,11 +1,15 @@
 package com.ero.iwara.ui.public
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.FilterChip
@@ -15,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -33,15 +38,16 @@ fun TagItem(tag: MTag, onClick: (MTag) -> Unit)
 
 @Preview
 @Composable
-fun TagItem(tag: String = "yae_miko", onClick: (String) -> Unit = {}, onDelete: (String) -> Unit = {}) {
+fun TagItem(tag: String = "yae_miko", border: Color = Color.Black, onClick: (String) -> Unit = {}, onDelete: (String) -> Unit = {}) {
     Row(modifier = Modifier
-        .padding(4.dp)
-        .wrapContentSize(), verticalAlignment = Alignment.CenterVertically)
+        .height(32.dp)
+        .border(BorderStroke(1.dp, border), RoundedCornerShape(16.dp)), verticalAlignment = Alignment.CenterVertically)
     {
         Text(tag, modifier = Modifier
             .wrapContentSize()
+            .padding(start = 12.dp)
             .clickable(onClick = { onClick(tag) }), fontSize = 18.sp)
-        IconButton(modifier = Modifier.size(24.dp), onClick = { onDelete(tag)}) {
+        IconButton(modifier = Modifier.size(24.dp).padding(horizontal = 4.dp), onClick = { onDelete(tag)}) {
             Icon(
                 imageVector = Icons.Default.Close,
                 contentDescription = null

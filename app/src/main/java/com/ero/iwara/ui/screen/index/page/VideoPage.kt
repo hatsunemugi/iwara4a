@@ -18,7 +18,6 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -28,34 +27,32 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.ero.iwara.R
+import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.ui.public.MediaPreviewCard
-import com.ero.iwara.ui.public.QueryParamSelector
-import com.ero.iwara.ui.screen.index.IndexViewModel
 import com.ero.iwara.util.noRippleClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun VideoListPage(navController: NavController, indexViewModel: IndexViewModel) {
-    val tagList = indexViewModel.tagPager.collectAsLazyPagingItems()
-    val videoList = indexViewModel.videoPager.collectAsLazyPagingItems()
-    val isRefreshing by remember { derivedStateOf { videoList.loadState.refresh is LoadState.Loading } }
-    val currentQueryParam by indexViewModel.videoQueryParamState.collectAsState()
+fun VideoListPage(navController: NavController, editor: ((SortType, List<String>)->Unit)->Unit, viewModel: MediaViewModel = hiltViewModel()) {
+    editor { sort, tags -> viewModel.update(sort, MediaType.VIDEO, tags) }
+    val list = viewModel.pager.collectAsLazyPagingItems()
+    val isRefreshing by remember { derivedStateOf { list.loadState.refresh is LoadState.Loading } }
     val refreshState = rememberPullToRefreshState()
-
     Box(modifier = Modifier.fillMaxSize()) {
-        if (videoList.loadState.refresh is LoadState.Error) {
+        if (list.loadState.refresh is LoadState.Error) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .noRippleClickable {
-                        videoList.retry()
+                        list.retry()
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -79,7 +76,7 @@ fun VideoListPage(navController: NavController, indexViewModel: IndexViewModel) 
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
                 state = refreshState,
-                onRefresh = { videoList.refresh() },
+                onRefresh = { list.refresh() },
                 modifier = Modifier,
                 indicator = {
                     Indicator(
@@ -93,35 +90,17 @@ fun VideoListPage(navController: NavController, indexViewModel: IndexViewModel) 
             {
                 LazyColumn(modifier = Modifier.fillMaxSize())
                 {
-                    item {
-                        QueryParamSelector(
-                            "排序",
-                            current = currentQueryParam.sort,
-                            list = SortType.entries,
-                            items = tagList,
-                            onEdit = {
-                                indexViewModel.updateTag(it)
-                            },
-                            onChangeType = {
-                                indexViewModel.updateVideoSort(it)
-                            },
-                            onChangeFilters =  {
-                                indexViewModel.updateVideoTags(it)
-                            }
-                        )
-                    }
-
                     items(
-                        count = videoList.itemCount,
-                        key = videoList.itemKey { it.id }, // 提供稳定的 key
-                        contentType = videoList.itemContentType { "videoItem" } // 提供内容类型
+                        count = list.itemCount,
+                        key = list.itemKey { it.id }, // 提供稳定的 key
+                        contentType = list.itemContentType { "videoItem" } // 提供内容类型
                     ) { index ->
-                        val mediaPreview = videoList[index] // 获取项
+                        val mediaPreview = list[index] // 获取项
                         mediaPreview?.let {
                             MediaPreviewCard(navController, it)
                         }
                     }
-                    when (videoList.loadState.append) {
+                    when (list.loadState.append) {
                         LoadState.Loading -> {
                             item {
                                 Row(
@@ -144,7 +123,7 @@ fun VideoListPage(navController: NavController, indexViewModel: IndexViewModel) 
                                 Row(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .noRippleClickable { videoList.retry() }
+                                        .noRippleClickable { list.retry() }
                                         .padding(8.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
@@ -164,7 +143,7 @@ fun VideoListPage(navController: NavController, indexViewModel: IndexViewModel) 
                                         }
                                         Text(
                                             modifier = Modifier.padding(horizontal = 16.dp),
-                                            text = "加载失败: ${(videoList.loadState.append as LoadState.Error).error.message}"
+                                            text = "加载失败: ${(list.loadState.append as LoadState.Error).error.message}"
                                         )
                                         Text(text = "点击重试")
                                     }

@@ -61,7 +61,7 @@ interface IwaraApi {
      * @param page 页数
      * @return 订阅列表
      */
-    suspend fun getSubscriptionList(session: Session, @IntRange(from = 0) page: Int): Response<SubscriptionList>
+    suspend fun getSubscriptionList(session: Session, type: MediaType, @IntRange(from = 0) page: Int): Response<SubscriptionList>
 
     /**
      * 获取图片页面信息

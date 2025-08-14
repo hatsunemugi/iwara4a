@@ -32,8 +32,7 @@ import androidx.compose.ui.unit.dp
 
 private val AppBarHorizontalPadding = 4.dp
 private val TitleInsetWithoutIcon = Modifier.width(16.dp - AppBarHorizontalPadding)
-private val TitleIconModifier = Modifier.fillMaxHeight()
-    .width(72.dp - AppBarHorizontalPadding)
+val TitleIconModifier = Modifier.fillMaxHeight().width(72.dp - AppBarHorizontalPadding)
 
 @Preview
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,7 +42,7 @@ fun FullScreenTopBar(
     modifier: Modifier = Modifier,
     navigationIcon: @Composable (() -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {},
-    backgroundColor: Color = MaterialTheme.colorScheme.primary,
+    backgroundColor: Color = MaterialTheme.colorScheme.surface,
     contentColor: Color = contentColorFor(backgroundColor),
     elevation: Dp = TopAppBarDefaults.TopAppBarExpandedHeight,
 ) {
@@ -104,7 +103,7 @@ private fun AppBar(
     Surface(
         color = backgroundColor,
         contentColor = contentColor,
-        shadowElevation = elevation,
+        tonalElevation = elevation,
         shape = shape,
         modifier = modifier.windowInsetsPadding(WindowInsets.statusBars)
     ) {

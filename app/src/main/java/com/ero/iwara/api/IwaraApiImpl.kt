@@ -41,8 +41,9 @@ class IwaraApiImpl(
 
     override suspend fun getSubscriptionList(
         session: Session,
+        type: MediaType,
         page: Int
-    ): Response<SubscriptionList> = autoRetry { iwaraParser.getSubscriptionList(session, page) }
+    ): Response<SubscriptionList> = autoRetry { iwaraParser.getSubscriptionList(session, type, page) }
 
     override suspend fun getImagePageDetail(
         session: Session,

@@ -1,7 +1,6 @@
 package com.ero.iwara.result
 
 import kotlinx.serialization.Serializable
-import kotlin.math.min
 
 @Serializable
 data class MFile(
@@ -14,7 +13,7 @@ data class MFile(
     val name: String,
     val numThumbnails: Int?,
     val path: String,
-    val size: Int,
+    val size: Int?,
     val type: String,
     val updatedAt: String,
     val createdAt: String,

@@ -36,8 +36,8 @@ enum class SearchType(val value: String)
 enum class MediaType(val value: String) {
     VIDEO("video"),
     IMAGE("image"),
-    FORUM("forum"),
     POST("post"),
+    FORUM("forum"),
     USER("user")
 
 }

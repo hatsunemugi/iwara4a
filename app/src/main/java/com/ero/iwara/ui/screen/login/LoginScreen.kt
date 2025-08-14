@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -47,7 +48,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ero.iwara.R
 import com.ero.iwara.ui.public.FullScreenTopBar
-import com.ero.iwara.util.HandleMessage
 import com.ero.iwara.util.send
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.iconTitle
@@ -80,7 +80,6 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
     }
     val progressState = rememberMaterialDialogState(false)
     val failureState = rememberMaterialDialogState(false)
-    HandleMessage(loginViewModel.message, false)
     // 登录进度对话框
     MaterialDialog(progressState){
         iconTitle(
@@ -232,7 +231,7 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
 @Composable
 private fun TopBar(navController: NavController) {
     FullScreenTopBar(
-        modifier = Modifier.height(48.dp),
+        modifier = Modifier.statusBarsPadding().height(56.dp),
         title = {
             Text(text = "登录账号")
         }

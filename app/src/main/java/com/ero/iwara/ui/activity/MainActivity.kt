@@ -3,8 +3,10 @@ package com.ero.iwara.ui.activity
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.Window
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -14,15 +16,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalClipboard
+import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import androidx.navigation.navDeepLink
+import com.ero.iwara.event.AppEvent
+import com.ero.iwara.event.subscribe
 import com.ero.iwara.ui.local.LocalScreenOrientation
 import com.ero.iwara.ui.screen.image.ImageScreen
 import com.ero.iwara.ui.screen.search.SearchScreen
@@ -32,22 +39,45 @@ import com.ero.iwara.ui.theme.IwaraTheme
 import com.ero.iwara.ui.screen.index.IndexScreen
 import com.ero.iwara.ui.screen.login.LoginScreen
 import com.ero.iwara.ui.screen.splash.SplashScreen
+import com.ero.iwara.util.set
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     var screenOrientation by mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT)
-
+    val message = MutableSharedFlow<AppEvent.GenericMessageEvent>()
+//    val message = MutableSharedFlow<String>().asSharedFlow()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        WindowCompat.setDecorFitsSystemWindows(window, false)
-        requestWindowFeature(Window.FEATURE_NO_TITLE)
+        enableEdgeToEdge()
         setContent {
             CompositionLocalProvider(LocalScreenOrientation provides screenOrientation) {
                 Index()
+                Listen()
+            }
+        }
+
+    }
+    @Composable
+    fun Listen()
+    {
+        val context = LocalContext.current
+        val clipboard = LocalClipboard.current
+        lifecycleScope.subscribe<AppEvent.GenericMessageEvent> {
+            message.emit(it)
+        }
+        LaunchedEffect(Unit) { // 如果 messagesFlow 实例是稳定的，也可以用 Unit
+            message.asSharedFlow().collectLatest {
+                Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                if(it.copy) clipboard.set(it.message)
             }
         }
     }
+
     @Composable
     fun Index()
     {
@@ -58,8 +88,8 @@ class MainActivity : ComponentActivity() {
                 val controller = WindowInsetsControllerCompat(window, window.decorView)
                 controller.isAppearanceLightStatusBars = useDarkIcons
                 controller.isAppearanceLightNavigationBars = useDarkIcons
-                controller.hide(WindowInsetsCompat.Type.systemBars())
-                controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+//                controller.hide(WindowInsetsCompat.Type.systemBars())
+//                controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 //                navController.currentBackStackEntryFlow.collect { backStackEntry ->
 //                    // 这个 collect 块会在每次导航事件导致 backStackEntryFlow 发出新值时执行
 //

@@ -1,5 +1,7 @@
 package com.ero.iwara.event
 
+import com.ero.iwara.event.FlowEventBus.events
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -8,6 +10,7 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -67,7 +70,7 @@ object FlowEventBus {
      * 通常，你会在一个生命周期感知的协程中收集它*/
     inline fun <reified T : AppEvent> eventsOfType(): Flow<T>
     {
-        return events.filter { it is T }.map { it as T }
+        return events.filterIsInstance()
     }
 }
 /**
@@ -94,6 +97,27 @@ inline fun <reified T : AppEvent> CoroutineScope.subscribe(
         }
     }
 }
+
+/**
+ * 订阅特定类型的事件并执行操作。
+ * 这个函数是一个便利的包装，用于在一个新的协程中启动订阅。
+ * **注意**: 这个简化的 subscribe 函数会在提供的 CoroutineScope 中启动一个新的协程。
+ * 调用者需要管理这个 scope 的生命周期以避免内存泄漏。
+ * 在 Android 中，通常使用 lifecycleScope 或 viewModelScope。
+ *
+ * @param CoroutineScope 协程作用域，用于收集事件
+ * @param onEvent 当接收到指定类型的事件时执行的回调
+ */
+//inline fun <reified T : AppEvent> CoroutineScope.subscribe(
+//    handler: CoroutineExceptionHandler,
+//    crossinline onEvent: suspend (event: T) -> Unit
+//) {
+//    this.launch(handler) { // 在传入的 scope 中启动收集
+//        eventsOfType<T>().collect { event ->
+//            onEvent(event)
+//        }
+//    }
+//}
 /**Kotlin
 * @param T 要订阅的事件的具体类型 (必须是 AppEvent 的子类型)
 * @return 返回一个 Flow，调用者需要在一个协程中 collect 这个 Flow 来开始接收事件。

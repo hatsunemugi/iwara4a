@@ -22,30 +22,34 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.ero.iwara.R
+import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.ui.public.MediaPreviewCard
-import com.ero.iwara.ui.screen.index.IndexViewModel
 import com.ero.iwara.util.noRippleClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SubPage(navController: NavController, indexViewModel: IndexViewModel) {
-    val subscriptionList = indexViewModel.subscriptionPager.collectAsLazyPagingItems()
+fun SubPage(navController: NavController, editor: ((MediaType)->Unit)->Unit, viewModel: SubViewModel = hiltViewModel()) {
+    editor{
+        viewModel.update(it)
+    }
+    val list = viewModel.pager.collectAsLazyPagingItems()
     val refreshState = rememberPullToRefreshState()
-    val isRefreshing = subscriptionList.loadState.refresh is LoadState.Loading
+    val isRefreshing = list.loadState.refresh is LoadState.Loading
 
     Box(modifier = Modifier.fillMaxSize()) {
-        if (subscriptionList.loadState.refresh is LoadState.Error) {
+        if (list.loadState.refresh is LoadState.Error) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .noRippleClickable {
-                        subscriptionList.retry()
+                        list.retry()
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -64,20 +68,20 @@ fun SubPage(navController: NavController, indexViewModel: IndexViewModel) {
                 }
             }
         } else {
-            PullToRefreshBox(isRefreshing = isRefreshing, state = refreshState, onRefresh = { subscriptionList.refresh() })
+            PullToRefreshBox(isRefreshing = isRefreshing, state = refreshState, onRefresh = { list.refresh() })
             {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
                     items(
-                        count = subscriptionList.itemCount,
-                        key = subscriptionList.itemKey { it.id }, // 提供稳定的 key
-                        contentType = subscriptionList.itemContentType { "subscriptionItem" } // 提供内容类型
+                        count = list.itemCount,
+                        key = list.itemKey { it.id }, // 提供稳定的 key
+                        contentType = list.itemContentType { "subscriptionItem" } // 提供内容类型
                     ) { index ->
-                        val mediaPreview = subscriptionList[index] // 获取项
+                        val mediaPreview = list[index] // 获取项
                         mediaPreview?.let {
                             MediaPreviewCard(navController, it)
                         }
                     }
-                    when (subscriptionList.loadState.append) {
+                    when (list.loadState.append) {
                         is LoadState.Loading -> {
                             item {
                                 Row(
@@ -101,7 +105,7 @@ fun SubPage(navController: NavController, indexViewModel: IndexViewModel) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .noRippleClickable { subscriptionList.retry() }
+                                        .noRippleClickable { list.retry() }
                                         .padding(8.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
@@ -121,7 +125,7 @@ fun SubPage(navController: NavController, indexViewModel: IndexViewModel) {
                                         }
                                         Text(
                                             modifier = Modifier.padding(horizontal = 16.dp),
-                                            text = "加载失败: ${(subscriptionList.loadState.append as LoadState.Error).error.message}"
+                                            text = "加载失败: ${(list.loadState.append as LoadState.Error).error.message}"
                                         )
                                         Text(text = "点击重试")
                                     }

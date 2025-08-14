@@ -19,8 +19,9 @@ class MediaRepo @Inject constructor(
 
     suspend fun getSubscriptionList(
         session: Session,
+        type: MediaType,
         @IntRange(from = 0) page: Int
-    ): Response<SubscriptionList> = iwaraApi.getSubscriptionList(session, page)
+    ): Response<SubscriptionList> = iwaraApi.getSubscriptionList(session, type, page)
 
     suspend fun getMediaList(
         session: Session,

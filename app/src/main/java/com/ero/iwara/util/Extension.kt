@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ripple
@@ -36,6 +35,10 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.ero.iwara.cache.MediaCache
 import com.ero.iwara.event.AppEvent
 import com.ero.iwara.event.postFlowEvent
+import com.ero.iwara.event.subscribe
+import com.ero.iwara.handler
+import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.collectLatest
 
@@ -71,22 +74,10 @@ suspend fun Clipboard?.set(text: String?)
     this.setClipEntry(clipData.toClipEntry())
 }
 
-fun send(message: String)
-{
-    postFlowEvent(AppEvent.GenericMessageEvent(message))
-}
 
-@Composable
-fun HandleMessage(flow: Flow<String>, copy: Boolean = true)
+fun send(message: String, copy: Boolean = true)
 {
-    val context = LocalContext.current
-    val clipboard = LocalClipboard.current
-    LaunchedEffect(flow) { // 如果 messagesFlow 实例是稳定的，也可以用 Unit
-        flow.collectLatest {
-            Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
-            if(copy) clipboard.set(it)
-        }
-    }
+    postFlowEvent(AppEvent.GenericMessageEvent(message, copy))
 }
 
 fun Map<String, String>?.toQuery(): String?

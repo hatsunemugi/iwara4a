@@ -1,156 +1,41 @@
 package com.ero.iwara.ui.screen.index
 
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.edit
+import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.PagingData
-import androidx.paging.cachedIn
-import com.ero.iwara.DatabaseManager
-import com.ero.iwara.api.paging.MediaSource
-import com.ero.iwara.api.paging.SubscriptionsSource
-import com.ero.iwara.api.paging.TagSource
-import com.ero.iwara.entity.TagBase
 import com.ero.iwara.event.AppEvent
 import com.ero.iwara.event.postFlowEvent
 import com.ero.iwara.event.subscribe
-import com.ero.iwara.model.index.MediaPreview
-import com.ero.iwara.model.index.MediaQueryParam
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
-import com.ero.iwara.model.index.TagList
 import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.model.user.Self
-import com.ero.iwara.repo.MediaRepo
 import com.ero.iwara.repo.UserRepo
-import com.ero.iwara.result.MTag
 import com.ero.iwara.sharedPreferencesOf
-import com.ero.iwara.ui.base.BaseViewModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class IndexViewModel @Inject constructor(
     private val userRepo: UserRepo,
-    private val mediaRepo: MediaRepo,
-    private val databaseManager: DatabaseManager,
     private val sessionManager: SessionManager
-) : BaseViewModel() {
+) : ViewModel() {
     var self by mutableStateOf(Self.GUEST)
     var loadingSelf by mutableStateOf(false)
-
-    // Pager: 标签查询参数
-    private val _tagParamStateFlow = MutableStateFlow("") // 初始值
-    val tagParamState: StateFlow<String> = _tagParamStateFlow.asStateFlow()
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val tagPager: Flow<PagingData<MTag>> = _tagParamStateFlow
-        .flatMapLatest { // 当 currentParams 变化时，会取消旧的 Pager 并创建一个新的
-            Pager(
-                config = PagingConfig(pageSize = 32, initialLoadSize = 32),
-                pagingSourceFactory = {
-                    // 每次都创建一个新的 TagSource 实例，并传入当前最新的参数
-                    TagSource(
-                        it,
-                        mediaRepo,
-                        databaseManager
-                    )
-                }
-            ).flow
-        }.cachedIn(viewModelScope) // cachedIn 是重要的
-    fun updateTag(tag: String) {
-        _tagParamStateFlow.value = tag
-    }
-
-
-    // Pager: 视频查询参数
-    private val _videoQueryParamStateFlow = MutableStateFlow(MediaQueryParam(SortType.TREND,
-        MediaType.VIDEO, emptyList())) // 初始值
-    val videoQueryParamState: StateFlow<MediaQueryParam> = _videoQueryParamStateFlow.asStateFlow()
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val videoPager: Flow<PagingData<MediaPreview>> = _videoQueryParamStateFlow
-        .flatMapLatest { // 当 currentParams 变化时，会取消旧的 Pager 并创建一个新的
-            Pager(
-                config = PagingConfig(pageSize = 32, initialLoadSize = 32),
-                pagingSourceFactory = {
-                    // 每次都创建一个新的 MediaSource 实例，并传入当前最新的参数
-                    MediaSource(
-                        MediaType.VIDEO,
-                        mediaRepo,
-                        sessionManager,
-                        it // 使用从 StateFlow 来的最新参数
-                    )
-                }
-            ).flow
-        }.cachedIn(viewModelScope) // cachedIn 是重要的
-    fun updateVideoSort(sort: SortType) {
-        _videoQueryParamStateFlow.update {
-            it.copy(sort = sort)
-        }
-    }
-
-    fun updateVideoTags(tags: List<String>) {
-        _videoQueryParamStateFlow.update {
-            it.copy(tags = tags)
-        }
-    }
-
-    // Pager: 订阅列表
-    val subscriptionPager by lazy {
-        Pager(
-            config = PagingConfig(
-                pageSize = 32,
-                initialLoadSize = 32,
-                prefetchDistance = 8
-            )
-        ) {
-            SubscriptionsSource(
-                sessionManager,
-                mediaRepo
-            )
-        }.flow.cachedIn(viewModelScope)
-    }
-
-    // 图片列表
-    private val _imageQueryParamStateFlow = MutableStateFlow(MediaQueryParam(SortType.TREND, MediaType.IMAGE, emptyList())) // 初始值
-    val imageQueryParamState: StateFlow<MediaQueryParam> = _imageQueryParamStateFlow.asStateFlow()
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val imagePager: Flow<PagingData<MediaPreview>> = _imageQueryParamStateFlow
-        .flatMapLatest { //当 currentParams 变化时，会取消旧的 Pager 并创建一个新的
-            Pager(
-                config = PagingConfig(pageSize = 32, initialLoadSize = 32),
-                pagingSourceFactory = {
-                    // 每次都创建一个新的 MediaSource 实例，并传入当前最新的参数
-                    MediaSource(
-                        MediaType.IMAGE,
-                        mediaRepo,
-                        sessionManager,
-                        it // 使用从 StateFlow 来的最新参数
-                    )
-                }
-            ).flow
-        }.cachedIn(viewModelScope) // cachedIn 是重要的
-    fun updateImageSort(sort: SortType) {
-        _imageQueryParamStateFlow.update {
-            it.copy(sort = sort)
-        }
-    }
-
-    fun updateImageTags(tags: List<String>) {
-        _imageQueryParamStateFlow.update {
-            it.copy(tags = tags)
-        }
-    }
+    var tag by mutableStateOf("")
+    var sort by mutableStateOf(SortType.TREND)
+    var type by mutableStateOf(MediaType.VIDEO)
+    var tags = mutableStateListOf<String>()
+    var page: ()->Int = { 1 }
+    var video: ()->Unit = {}
+    var image: ()->Unit = {}
+    var sub: ()->Unit = {}
 
     init {
         viewModelScope.subscribe<AppEvent.UserLoggedInEvent> {
@@ -160,6 +45,14 @@ class IndexViewModel @Inject constructor(
     }
 
     override fun onCleared() { }
+    fun search()
+    {
+        when(page()){
+            0 -> video()
+            1 -> sub()
+            2 -> image()
+        }
+    }
 
     fun refreshSelf() = viewModelScope.launch {
         loadingSelf = true
@@ -179,9 +72,4 @@ class IndexViewModel @Inject constructor(
         }
         loadingSelf = false
     }
-
-//    @Subscribe(threadMode = ThreadMode.MAIN)
-//    fun onLogin(loginEvent: LoginEvent) {
-//        refreshSelf()
-//    }
 }

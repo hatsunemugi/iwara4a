@@ -1,7 +1,13 @@
 package com.ero.iwara.ui.screen.index.page
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
@@ -10,32 +16,29 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemContentType
 import androidx.paging.compose.itemKey
 import com.ero.iwara.R
+import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.ui.public.MediaPreviewCard
-import com.ero.iwara.ui.public.QueryParamSelector
-import com.ero.iwara.ui.screen.index.IndexViewModel
 import com.ero.iwara.util.noRippleClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ImageListPage(navController: NavController, indexViewModel: IndexViewModel){
-    val tagList = indexViewModel.tagPager.collectAsLazyPagingItems()
-    val imageList = indexViewModel.imagePager.collectAsLazyPagingItems()
-    val currentQueryParam by indexViewModel.imageQueryParamState.collectAsState()
+fun ImageListPage(navController: NavController, editor: ((SortType, List<String>)->Unit)->Unit, viewModel: MediaViewModel = hiltViewModel()){
+    editor { sort, tags->  viewModel.update(sort, MediaType.IMAGE, tags) }
+    val imageList = viewModel.pager.collectAsLazyPagingItems()
     val freshState = rememberPullToRefreshState()
     val isRefreshing = imageList.loadState.refresh is LoadState.Loading
     Box(modifier = Modifier.fillMaxSize()) {
@@ -69,25 +72,25 @@ fun ImageListPage(navController: NavController, indexViewModel: IndexViewModel){
                 onRefresh = { imageList.refresh() } )
             {
                 LazyColumn(modifier = Modifier.fillMaxSize()) {
-                    item {
-                        QueryParamSelector(
-                            "排序",
-                            current = currentQueryParam.sort,
-                            list = SortType.entries,
-                            items = tagList,
-                            onEdit = {},
-                            onChangeType = {
-                                indexViewModel.updateImageSort(it)
-//                                indexViewModel.imageQueryParam.sort = it
-//                                imageList.refresh()
-                            },
-                            onChangeFilters = {
-                                indexViewModel.updateImageTags(it)
-//                                indexViewModel.imageQueryParam.tags = it
-//                                imageList.refresh()
-                            }
-                        )
-                    }
+//                    item {
+//                        QueryParamSelector(
+//                            "排序",
+//                            current = currentQueryParam.sort,
+//                            list = SortType.entries,
+//                            items = tagList,
+//                            onEdit = {},
+//                            onChangeType = {
+//                                indexViewModel.updateImageSort(it)
+////                                indexViewModel.imageQueryParam.sort = it
+////                                imageList.refresh()
+//                            },
+//                            onChangeFilters = {
+//                                indexViewModel.updateImageTags(it)
+////                                indexViewModel.imageQueryParam.tags = it
+////                                imageList.refresh()
+//                            }
+//                        )
+//                    }
 
                     items(
                         count = imageList.itemCount,

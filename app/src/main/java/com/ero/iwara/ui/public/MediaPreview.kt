@@ -1,12 +1,19 @@
 package com.ero.iwara.ui.public
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -22,11 +29,11 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.ero.iwara.R
-import com.ero.iwara.event.AppEvent
-import com.ero.iwara.event.postFlowEvent
 import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaType
-import com.ero.iwara.model.index.MediaType.*
+import com.ero.iwara.model.index.MediaType.IMAGE
+import com.ero.iwara.model.index.MediaType.VIDEO
+import com.ero.iwara.util.send
 
 @Composable
 fun MediaPreviewCard(navController: NavController, mediaPreview: MediaPreview) {
@@ -51,7 +58,7 @@ fun MediaPreviewCard(navController: NavController, mediaPreview: MediaPreview) {
                     model = mediaPreview.previewPic, // 直接传递图片 URL 或数据模型
                     contentDescription = null, // 或者提供有意义的描述
                     onError = {
-                        postFlowEvent(AppEvent.GenericMessageEvent(mediaPreview.previewPic))
+                        send(mediaPreview.previewPic, true)
                     },
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.FillWidth, // 其他 Image 参数可以直接在 AsyncImage 上设置

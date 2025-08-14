@@ -4,12 +4,14 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -19,12 +21,11 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -37,11 +38,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.paging.compose.LazyPagingItems
-import com.ero.iwara.result.MTag
+import com.ero.iwara.model.index.MediaType
+import com.ero.iwara.model.index.SortType
+import com.ero.iwara.ui.screen.index.IndexViewModel
 import com.ero.iwara.ui.screen.index.page.TagListPage
 import com.ero.iwara.util.ripple
-import com.ero.iwara.util.textFieldColors
 import com.vanpra.composematerialdialogs.MaterialDialog
 import com.vanpra.composematerialdialogs.MaterialDialogScope
 import com.vanpra.composematerialdialogs.listItemsSingleChoice
@@ -49,43 +50,56 @@ import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import com.vanpra.composematerialdialogs.title
 
 @Composable
-fun <T> QueryParamSelector(
-    field: String,
-    current: T,
-    list: List<T>,
-    items: LazyPagingItems<MTag>,
-    onEdit: (String) -> Unit,
-    onChangeType: (type: T) -> Unit,
-    onChangeFilters: (filters: List<String>) -> Unit
-)where T: Enum<T> {
+fun QueryParamSelector(
+    modifier: Modifier,
+    viewModel: IndexViewModel,
+    selector: ((String)->Unit)->Unit
+){
     var tag by remember { mutableStateOf("") }
-    val tags = remember { mutableStateListOf<MTag>() }
     var edit by remember { mutableStateOf(false) }
-    var type by remember { mutableStateOf(current) }
-    val focus = LocalFocusManager.current
     var dialog by remember { mutableIntStateOf(1) }
+    val border = if(isSystemInDarkTheme()) Color.White else Color.Black
+    val focus = LocalFocusManager.current
+    var editor:(String)->Unit = {}
+    val type by remember { derivedStateOf { viewModel.page() == 1 } }
+    selector{
+        tag = it
+        edit = true
+    }
     val state = rememberMaterialDialogState()
     MaterialDialog(state) {
         when(dialog)
         {
             1 -> {
-                TypeSelector(field, type, list) {
-                    type = list[it]
-                    onChangeType(type)
-                    state.hide()
+                if(type) {
+                    TypeSelector("分类",viewModel.type,listOf(MediaType.VIDEO, MediaType.IMAGE,
+                            MediaType.POST))
+                    {
+                        viewModel.type = MediaType.entries[it]
+                        viewModel.search()
+                        state.hide()
+                    }
+                }else {
+                    TypeSelector("排序", viewModel.sort, SortType.entries) {
+                        viewModel.sort = SortType.entries[it]
+                        viewModel.search()
+                        state.hide()
+                    }
                 }
             }
             2 -> {
                 CharSelector {
                     tag = it
-                    onEdit(it)
-                    state.hide()
+                    edit = true
+                    editor(it)
+                    dialog = 4
                 }
             }
             4 -> {
-                TagListPage(items) {
-                    tags.add(it)
-                    onChangeFilters(tags.map { tag -> tag.id })
+                TagListPage(editor = { editor = it }) {
+                    tag = it
+                    viewModel.tags.add(it)
+                    viewModel.search()
                     state.hide()
                     edit = false
                     tag = ""
@@ -93,111 +107,53 @@ fun <T> QueryParamSelector(
             }
         }
     }
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .padding(4.dp),
+    Row(modifier = modifier
+        .height(56.dp),
         verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp))
     {
-        Text(text = "$field:")
         Box(
             modifier = Modifier
                 .clickable {
-                    dialog = 1;
+                    dialog = 1
                     state.show()
                 }
-                .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(2.dp))
-                .padding(4.dp)
+                .border(BorderStroke(1.dp, border), RoundedCornerShape(2.dp))
+                .height(32.dp)
+                .padding(horizontal = 8.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Text(text = type.name)
+            Text(modifier = Modifier.wrapContentSize(), text = if(type) viewModel.type.name else viewModel.sort.name)
         }
         if(edit){
-            OutlinedTextField(
-                value = tag,
-                onValueChange = {
-                    tag = it
-                },
-                colors = textFieldColors(Color.Transparent),
-                modifier = Modifier.weight(1f),
-                singleLine = true
+            SearchTag(tag, modifier = Modifier.weight(1f).height(56.dp), focus)
+            {
+                tag = it
+                dialog = 4
+                state.show()
+                editor(tag)
+            }
+        }
+        if(!type)
+        {
+            Icon(
+                modifier = Modifier
+                    .size(24.dp)
+                    .border(BorderStroke(1.dp, Color.Black))
+                    .clickable {
+                        if (!edit) {
+                            dialog = 2
+                            state.show()
+                        } else {
+                            focus.clearFocus()
+                        }
+                    },
+                imageVector = if (edit) Icons.Default.Done else Icons.Default.Add,
+                contentDescription = null
             )
         }
-        Icon(
-            modifier = Modifier
-                .size(24.dp)
-                .border(BorderStroke(1.dp, Color.Black))
-                .clickable {
-                    if (!edit) {
-                        dialog = 2
-                        state.show()
-                        edit = true
-                    } else {
-                        dialog = 4
-                        focus.clearFocus()
-                        onEdit(tag)
-                        state.show()
-                    }
-                },
-            imageVector = if (edit) Icons.Default.Done else Icons.Default.Add,
-            contentDescription = null
-        )
-    }
-    if(tags.isEmpty()) return
-    FlowRow(
-        modifier = Modifier
-            .padding(16.dp) // 给 FlowRow 一些内边距
-            .fillMaxWidth(), // 让 FlowRow 占据可用宽度
-        horizontalArrangement = Arrangement.spacedBy(8.dp), // 标签之间的水平间距
-        verticalArrangement = Arrangement.spacedBy(8.dp),   // 标签行之间的垂直间距
-        // maxItemsInEachRow = 5, // 如果你想限制每行的最大项目数 (可选)
-    ) {
-        tags.forEach { item ->
-            TagItem(
-                tag = item.id,
-                onClick = { result ->
-                    tag = result
-                    edit = true
-                },
-                onDelete = { tag ->
-                    tags.removeIf { it.id == tag }
-                    onChangeFilters(tags.map { it.id })
-                })
-        }
-    }
-}
 
-@Composable
-fun <T> QueryParamSelector(
-    field: String,
-    current: T,
-    list: List<T>,
-    onChangeType: (type: T) -> Unit
-)where T: Enum<T> {
-    var type by remember { mutableStateOf(current) }
-    val state = rememberMaterialDialogState()
-    MaterialDialog(state) {
-        TypeSelector(field, type, list) {
-            type = list[it]
-            onChangeType(type)
-            state.hide()
-        }
     }
-    Row(modifier = Modifier
-        .fillMaxWidth()
-        .padding(4.dp),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp))
-    {
-        Text(text = "$field:")
-        Box(
-            modifier = Modifier
-                .clickable {
-                    state.show()
-                }
-                .border(BorderStroke(1.dp, Color.Black), RoundedCornerShape(2.dp))
-                .padding(4.dp)
-        ) {
-            Text(text = type.name)
-        }
-    }
+
 }
 
 @Composable
