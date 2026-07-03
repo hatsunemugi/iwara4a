@@ -17,7 +17,7 @@ import com.ero.iwara.model.session.Session
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.model.user.UserData
 import com.ero.iwara.param.UserLogin
-import com.ero.iwara.result.MCount
+import com.ero.iwara.api.result.MCount
 import com.ero.iwara.util.autoRetry
 
 /**

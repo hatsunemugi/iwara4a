@@ -2,24 +2,41 @@ package com.ero.iwara.util
 
 import android.content.ClipData
 import android.content.Context
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.LayoutModifier
+import androidx.compose.ui.layout.Measurable
+import androidx.compose.ui.layout.MeasureResult
+import androidx.compose.ui.layout.MeasureScope
+import androidx.compose.ui.layout.Placeable
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.Clipboard
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.toClipEntry
+import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.height
+import androidx.compose.ui.unit.width
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -28,8 +45,13 @@ import kotlinx.datetime.toLocalDateTime
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 import androidx.core.net.toUri
+import androidx.media3.common.C
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.ero.iwara.cache.MediaCache
@@ -87,6 +109,36 @@ fun Map<String, String>?.toQuery(): String?
 }
 
 @androidx.annotation.OptIn(UnstableApi::class)
+@Composable
+fun player(url: String, size: (Int, Int)->Unit): Player {
+    val context = LocalContext.current
+    val loadControl = DefaultLoadControl.Builder()
+        .setBufferDurationsMs(8000,16000,2000,2000)
+        .setBackBuffer(5000, true)
+        .setPrioritizeTimeOverSizeThresholds(true) // 优先时间阈值
+        .setTargetBufferBytes(C.LENGTH_UNSET)      // 禁用基于大小的缓冲
+        .build()
+    val player = ExoPlayer.Builder(context).setLoadControl(loadControl).
+    setRenderersFactory(
+        DefaultRenderersFactory(context)
+            .setExtensionRendererMode(DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER)
+            .setEnableDecoderFallback(true)
+    ).cache(context).build().apply {
+        playWhenReady = false
+        repeatMode = Player.REPEAT_MODE_OFF
+    }
+
+    val mediaItem = MediaItem.fromUri(url.toUri())
+    val listener = PlayerListener(null,null,null,null, null, size)
+    player.apply {
+        addListener(listener)
+        setMediaItem(mediaItem)
+        prepare()
+    }
+    return player
+}
+
+@androidx.annotation.OptIn(UnstableApi::class)
 fun ExoPlayer.Builder.cache(context: Context): ExoPlayer.Builder
 {
     // 1. 创建上游数据源工厂 (例如，从网络加载)
@@ -101,6 +153,12 @@ fun ExoPlayer.Builder.cache(context: Context): ExoPlayer.Builder
 
     return setMediaSourceFactory(mediaSourceFactory)
 }
+
+fun Modifier.auto(aspectRatioValue: Float? = null): Modifier
+{
+    return this.then(AutoLayoutModifier(aspectRatioValue))
+}
+
 
 @Composable
 fun textFieldColors(color: Color): TextFieldColors

@@ -53,7 +53,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -84,9 +86,10 @@ import com.ero.iwara.model.detail.video.VideoDetail
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.ui.local.LocalScreenOrientation
 import com.ero.iwara.ui.public.CommentItem
-import com.ero.iwara.ui.public.ExoPlayer3
+import com.ero.iwara.ui.public.ExoPlayerContainer
 import com.ero.iwara.ui.public.FullScreenTopBar
 import com.ero.iwara.ui.public.TabItem
+import com.ero.iwara.ui.public.VideoPlayer
 import com.ero.iwara.ui.theme.PINK
 import com.ero.iwara.util.noRippleClickable
 import com.ero.iwara.util.shareMedia
@@ -99,16 +102,17 @@ fun VideoScreen(
 ) {
     val orientation = LocalScreenOrientation.current
     val context = LocalActivity.current
-
-    val isVideoLoaded by remember { derivedStateOf { videoViewModel.videoDetail != VideoDetail.LOADING && !videoViewModel.error && !videoViewModel.isLoading } }
-    val getTitle by remember { derivedStateOf { if (videoViewModel.isLoading) "加载中" else if (isVideoLoaded) videoViewModel.videoDetail.title else if (videoViewModel.error) "加载失败" else "视频页面" } }
-    val videoLink by remember { derivedStateOf { videoViewModel.videoDetail.links.firstOrNull()?.src?.view ?: "" } }
+    val error by videoViewModel.error.collectAsState()
+    val video by videoViewModel.videoDetail.collectAsState()
+    val loading by videoViewModel.isLoading.collectAsState()
+    val isVideoLoaded by remember { derivedStateOf { video != VideoDetail.LOADING && !error && !loading } }
+    val getTitle by remember { derivedStateOf { if (loading) "加载中" else if (isVideoLoaded) video.title else if (error) "加载失败" else "视频页面" } }
 
     // 加载视频
     LaunchedEffect(Unit) {
         videoViewModel.loadVideo(videoId)
     }
-
+//    SystemUiController(context, view)
     // 响应旋转
     BackHandler(isVideoLoaded && orientation == Configuration.ORIENTATION_LANDSCAPE) {
         context?.let { it.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED }
@@ -136,19 +140,7 @@ fun VideoScreen(
                 .padding(it)
                 .fillMaxSize()
         ) {
-            ExoPlayer3(
-                modifier = if (orientation == Configuration.ORIENTATION_PORTRAIT)
-                    Modifier
-                        .fillMaxWidth()
-                        .wrapContentHeight()
-                        .requiredHeightIn(max = 210.dp)
-                        .background(Color.Black)
-                else
-                    Modifier
-                        .fillMaxSize()
-                        .background(Color.Black),
-                videoLink = videoLink
-            )
+            VideoPlayer(video = video)
 
             when {
                 isVideoLoaded -> {
@@ -157,11 +149,11 @@ fun VideoScreen(
                             .weight(1f)
                             .fillMaxWidth()
                     ) {
-                        VideoInfo(navController, videoViewModel, videoViewModel.videoDetail)
+                        VideoInfo(navController, videoViewModel, video)
 
                     }
                 }
-                videoViewModel.isLoading -> {
+                loading -> {
                     Box(
                         modifier = Modifier
                             .fillMaxSize(),
@@ -173,7 +165,7 @@ fun VideoScreen(
                         }
                     }
                 }
-                videoViewModel.error -> {
+                error -> {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
@@ -206,25 +198,19 @@ fun VideoScreen(
 private fun SystemUiController(
     activity: Activity?,
     view: View,
-    orientation: Int,
-    isVideoLoaded: Boolean
 ) {
     val window = activity?.window ?: return
-    val insetsController = remember(window, view) { // 记住 insetsController
+    val controller = remember(window, view) { // 记住 insetsController
         WindowCompat.getInsetsController(window, view)
     }
 
-    LaunchedEffect(orientation, isVideoLoaded, insetsController) {
-        if (isVideoLoaded) {
-            if (orientation == Configuration.ORIENTATION_LANDSCAPE) {
-                insetsController.hide(WindowInsetsCompat.Type.systemBars())
-                insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            } else {
-                insetsController.show(WindowInsetsCompat.Type.systemBars())
-            }
-        } else {
-            // 确保在视频未加载或加载失败时，系统栏是可见的
-            insetsController.show(WindowInsetsCompat.Type.systemBars())
+    DisposableEffect(Unit) {
+
+        controller.hide(WindowInsetsCompat.Type.systemBars())
+        controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+
+        onDispose {
+            controller.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 }

@@ -137,8 +137,8 @@ fun QueryParamSelector(
         {
             Icon(
                 modifier = Modifier
-                    .size(24.dp)
-                    .border(BorderStroke(1.dp, Color.Black))
+                    .size(32.dp)
+                    .border(BorderStroke(1.dp, border))
                     .clickable {
                         if (!edit) {
                             dialog = 2

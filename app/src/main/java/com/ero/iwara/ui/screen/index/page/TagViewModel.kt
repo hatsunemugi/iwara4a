@@ -6,10 +6,10 @@ import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import com.ero.iwara.DatabaseManager
 import com.ero.iwara.api.paging.TagSource
+import com.ero.iwara.stroage.dao.TagDao
 import com.ero.iwara.repo.MediaRepo
-import com.ero.iwara.result.MTag
+import com.ero.iwara.api.result.MTag
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -22,7 +22,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TagViewModel @Inject constructor(
     private val repo: MediaRepo,
-    private val manager: DatabaseManager,
+    private val dao: TagDao,
 ) : ViewModel() {
     private val value: MutableStateFlow<String> = MutableStateFlow("")
 
@@ -34,7 +34,7 @@ class TagViewModel @Inject constructor(
             config = PagingConfig(pageSize = 32, initialLoadSize = 32, prefetchDistance = 8),
             pagingSourceFactory = {
                 // 每次都创建一个新的 MediaSource 实例，并传入当前最新的参数
-                TagSource(it, repo, manager)
+                TagSource(it, repo, dao)
             }
         ).flow
     }.cachedIn(viewModelScope) // cachedIn 是重要的

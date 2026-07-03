@@ -1,11 +1,11 @@
 package com.ero.iwara.di
 
 import android.content.Context
+import androidx.room.Room
 
 import com.ero.iwara.AppDatabase
-import com.ero.iwara.DatabaseManager
-import com.ero.iwara.dao.TagDao
-import com.ero.iwara.dao.UserDao
+import com.ero.iwara.stroage.dao.TagDao
+import com.ero.iwara.stroage.dao.UserDao
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,7 +20,11 @@ object DatabaseModule {
     @Singleton
     @Provides
     fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase {
-        return AppDatabase.getInstance(context)
+        return Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            AppDatabase.DATABASE_NAME
+        ).build()
     }
 
     @Singleton
@@ -33,17 +37,5 @@ object DatabaseModule {
     @Provides
     fun provideTagDao(appDatabase: AppDatabase): TagDao {
         return appDatabase.tagDao()
-    }
-
-    @Singleton
-    @Provides
-    fun provideDatabaseManager(@ApplicationContext context: Context): DatabaseManager {
-        // 如果 DatabaseManager 内部直接获取 AppDatabase.getInstance(context).noteDao()
-        // 那么它只需要 ApplicationContext
-        return DatabaseManager(context)
-        // 或者，如果 DatabaseManager 接收 NoteDao 作为参数：
-        // fun provideDatabaseManager(noteDao: NoteDao): DatabaseManager {
-        //     return DatabaseManager(noteDao) // 假设 DatabaseManager 构造函数改为 (private val noteDao: NoteDao)
-        // }
     }
 }

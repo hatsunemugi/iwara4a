@@ -1,9 +1,17 @@
 package com.ero.iwara.model.session
 
+import android.content.Context
 import androidx.core.content.edit
 import com.ero.iwara.sharedPreferencesOf
+import com.ero.iwara.util.AppPreferencesDelegates
 
-class SessionManager {
+class SessionManager(context: Context) {
+    var salt = AppPreferencesDelegates.string(
+        context = context,
+        name = "config", // SharedPreferences 文件名
+        key = "salt",       // 存储的键
+        defaultValue = "mSvL05GfEmeEmsEYfGCnVpEjYgTJraJN"     // 默认值
+    )
     val session: Session by lazy {
         val sharedPreferences = sharedPreferencesOf("session")
         Session(sharedPreferences.getString("key","")!!, sharedPreferences.getString("value","")!!)

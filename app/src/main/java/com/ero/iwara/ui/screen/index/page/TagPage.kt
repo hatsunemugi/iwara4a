@@ -38,7 +38,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.ero.iwara.R
-import com.ero.iwara.result.MTag
+import com.ero.iwara.api.result.MTag
 import com.ero.iwara.ui.public.TagItem
 import com.ero.iwara.util.noRippleClickable
 

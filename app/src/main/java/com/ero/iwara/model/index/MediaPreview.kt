@@ -24,20 +24,12 @@ data class MediaPreview(
     val mediaId: String
 )
 
-enum class SearchType(val value: String)
-{
-    VIDEO("video"),
-    IMAGE("image"),
-    FORUM("forum"),
-    POST("post"),
-    USER("user")
-}
-
 enum class MediaType(val value: String) {
     VIDEO("video"),
     IMAGE("image"),
     POST("post"),
-    FORUM("forum"),
+    THREAD("forum_thread"),
+    FORUM("forum_post"),
     USER("user")
 
 }

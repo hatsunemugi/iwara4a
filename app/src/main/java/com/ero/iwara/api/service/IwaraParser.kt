@@ -13,7 +13,6 @@ import com.ero.iwara.model.detail.video.VideoDetail
 import com.ero.iwara.model.flag.FollowResponse
 import com.ero.iwara.model.flag.LikeResponse
 import com.ero.iwara.model.index.MediaList
-import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.model.index.SubscriptionList
@@ -23,23 +22,25 @@ import com.ero.iwara.model.user.Self
 import com.ero.iwara.model.user.UserData
 import com.ero.iwara.param.PageParam
 import com.ero.iwara.param.UserLogin
-import com.ero.iwara.result.MAccessToken
-import com.ero.iwara.result.MBase
-import com.ero.iwara.result.MComment
-import com.ero.iwara.result.MCount
-import com.ero.iwara.result.MForum
-import com.ero.iwara.result.MImage
-import com.ero.iwara.result.MLike
-import com.ero.iwara.result.MLink
-import com.ero.iwara.result.MLinkInfo
-import com.ero.iwara.result.MPost
-import com.ero.iwara.result.MProfile
-import com.ero.iwara.result.MResult
-import com.ero.iwara.result.MTag
-import com.ero.iwara.result.MToken
-import com.ero.iwara.result.MUser
-import com.ero.iwara.result.MUserInfo
-import com.ero.iwara.result.MVideo
+import com.ero.iwara.api.result.MAccessToken
+import com.ero.iwara.api.result.MBase
+import com.ero.iwara.api.result.MComment
+import com.ero.iwara.api.result.MCount
+import com.ero.iwara.api.result.MForum
+import com.ero.iwara.api.result.MImage
+import com.ero.iwara.api.result.MLike
+import com.ero.iwara.api.result.MLink
+import com.ero.iwara.api.result.MLinkInfo
+import com.ero.iwara.api.result.MPost
+import com.ero.iwara.api.result.MProfile
+import com.ero.iwara.api.result.MResult
+import com.ero.iwara.api.result.MTag
+import com.ero.iwara.api.result.MThread
+import com.ero.iwara.api.result.MToken
+import com.ero.iwara.api.result.MUser
+import com.ero.iwara.api.result.MUserInfo
+import com.ero.iwara.api.result.MVideo
+import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.sharedPreferencesOf
 import com.ero.iwara.util.format
 import com.ero.iwara.util.okhttp.CookieJarHelper
@@ -57,6 +58,7 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
+import kotlin.properties.ReadWriteProperty
 
 private const val TAG = "IwaraParser"
 
@@ -68,9 +70,12 @@ private const val TAG = "IwaraParser"
  *
  * @author RE
  */
-class IwaraParser() {
+class IwaraParser(
+    sessionManager: SessionManager
+) {
     val api = "https://api.iwara.tv"
     val file = "https://i.iwara.tv"
+    val salt by sessionManager.salt
     fun getClient(): OkHttpClient
     {
         val client = OkHttpClient.Builder()
@@ -302,7 +307,8 @@ class IwaraParser() {
         try {
             Log.i(TAG, "getVideoPageDetail: Start load video detail (id:$videoId)")
             val response = get<MVideo>("$api/video/$videoId",null, session.map()) ?: return Response.failed("${videoId}为空")
-            val links = response.fileUrl?.let { get<List<MLinkInfo>>(it, null,session.map("xversion" to response.version())) }?.filter { it.name != "preview" }?.apply { forEach { it.src  = MLink("https:"+it.src.view, "https:"+it.src.download)  } } ?: listOf()
+            val links = response.fileUrl?.let { get<List<MLinkInfo>>(it, null,session.map("x-version" to response.version(salt))) }?.filter { it.name != "preview" }?.apply { forEach { it.src  = MLink("https:"+it.src.view, "https:"+it.src.download)  } } ?: listOf()
+            Log.i(TAG, "links:$links")
             val title = response.title
             val likes = response.numLikes.toString()
             val watches = response.numViews.toString()
@@ -391,9 +397,10 @@ class IwaraParser() {
             return Response.failed(e.javaClass.name)
         }
     }
-    suspend fun getReply(session: Session, mediaType: MediaType, mediaId: String, comment: MComment): List<Comment> {
+    suspend fun getReply(session: Session, mediaType: MediaType, author: String, mediaId: String, comment: MComment): List<Comment> {
         try {
             if(comment.numReplies == 0) return listOf()
+            val self = sharedPreferencesOf("session").getString("id","未登录")
             val param = PageParam(parent = comment.id, page = 0)
             val response = get<MResult<MComment>>("$api/${mediaType.value}/$mediaId/comments", param.map(), session.map())
             val result = response?.results?.map {
@@ -407,10 +414,14 @@ class IwaraParser() {
                     authorId = authorId,
                     authorName = authorName,
                     authorPic = authorPic,
-                    posterType= CommentPosterType.OWNER,
+                    posterType= when(authorId){
+                        author -> CommentPosterType.OWNER
+                        self -> CommentPosterType.SELF
+                        else -> CommentPosterType.NORMAL
+                    },
                     content = content,
                     date = date,
-                    reply = getReply(session, mediaType, mediaId, it)
+                    reply = getReply(session, mediaType, author, mediaId, it)
                 )
             } ?: listOf()
             return result
@@ -451,7 +462,7 @@ class IwaraParser() {
                     },
                     content = content,
                     date = date,
-                    reply = getReply(session, mediaType, mediaId, it)
+                    reply = getReply(session, mediaType, author, mediaId, it)
                 )
             }
 
@@ -532,7 +543,7 @@ class IwaraParser() {
     suspend fun search(session: Session, query: String, page: Int, type: MediaType): Response<MediaList>
     {
         try {
-            val param = PageParam(page = page, type = type.value, query = query)
+            val param = PageParam(page = page, type = "${type.value}s" , query = query)
             val result = when(type)
             {
                 MediaType.IMAGE -> get<MResult<MImage>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
@@ -540,6 +551,7 @@ class IwaraParser() {
                 MediaType.POST ->  get<MResult<MPost>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
                 MediaType.USER -> get<MResult<MUser>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
                 MediaType.FORUM -> get<MResult<MForum>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
+                MediaType.THREAD -> get<MResult<MThread>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
             } ?: return Response.failed("接口请求失败")
             val list = result.results
             val hasNext = result.limit * (page) < result.count

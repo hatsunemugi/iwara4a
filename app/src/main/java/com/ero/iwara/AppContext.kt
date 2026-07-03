@@ -24,7 +24,7 @@ class AppContext : Application() {
             .addInterceptor { chain ->
                 val originalRequest = chain.request()
                 val requestWithReferer = originalRequest.newBuilder()
-                    .header("Referer", "https://www.iwara.tv/") // 添加 Referer
+                    .header("Referer", "https://www.iwara.tv/")
                     .build()
                 chain.proceed(requestWithReferer)
             }

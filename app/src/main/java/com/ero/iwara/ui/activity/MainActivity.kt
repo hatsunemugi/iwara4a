@@ -2,6 +2,7 @@ package com.ero.iwara.ui.activity
 
 import android.content.res.Configuration
 import android.os.Bundle
+import android.util.Log
 import android.view.Window
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -19,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
@@ -50,7 +52,6 @@ import kotlinx.coroutines.launch
 class MainActivity : ComponentActivity() {
     var screenOrientation by mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT)
     val message = MutableSharedFlow<AppEvent.GenericMessageEvent>()
-//    val message = MutableSharedFlow<String>().asSharedFlow()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -72,8 +73,9 @@ class MainActivity : ComponentActivity() {
         }
         LaunchedEffect(Unit) { // 如果 messagesFlow 实例是稳定的，也可以用 Unit
             message.asSharedFlow().collectLatest {
-                Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
-                if(it.copy) clipboard.set(it.message)
+//                Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
+                Log.d("iwara", it.message)
+//                if(it.copy) clipboard.set(it.message)
             }
         }
     }
@@ -88,8 +90,8 @@ class MainActivity : ComponentActivity() {
                 val controller = WindowInsetsControllerCompat(window, window.decorView)
                 controller.isAppearanceLightStatusBars = useDarkIcons
                 controller.isAppearanceLightNavigationBars = useDarkIcons
-//                controller.hide(WindowInsetsCompat.Type.systemBars())
-//                controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+                controller.hide(WindowInsetsCompat.Type.systemBars())
+                controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
 //                navController.currentBackStackEntryFlow.collect { backStackEntry ->
 //                    // 这个 collect 块会在每次导航事件导致 backStackEntryFlow 发出新值时执行
 //

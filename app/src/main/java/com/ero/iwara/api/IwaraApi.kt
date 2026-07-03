@@ -14,7 +14,7 @@ import com.ero.iwara.model.index.TagList
 import com.ero.iwara.model.session.Session
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.model.user.UserData
-import com.ero.iwara.result.MCount
+import com.ero.iwara.api.result.MCount
 
 /**
  * 提供远程资源API, 通过连接IWARA来获取数据

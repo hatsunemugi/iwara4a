@@ -1,6 +1,6 @@
 package com.ero.iwara.model.index
 
-import com.ero.iwara.result.MTag
+import com.ero.iwara.api.result.MTag
 
 data class TagList(
     val currentPage: Int,

@@ -5,7 +5,7 @@ import com.ero.iwara.api.Response
 import com.ero.iwara.model.session.Session
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.model.user.UserData
-import com.ero.iwara.result.MCount
+import com.ero.iwara.api.result.MCount
 import javax.inject.Inject
 
 class UserRepo @Inject constructor(

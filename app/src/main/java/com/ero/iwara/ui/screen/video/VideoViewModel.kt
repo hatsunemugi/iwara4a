@@ -14,6 +14,8 @@ import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.repo.MediaRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,10 +25,10 @@ class VideoViewModel @Inject constructor(
     private val sessionManager: SessionManager,
     private val mediaRepo: MediaRepo
 ): ViewModel() {
-    var videoId by mutableStateOf("")
-    var isLoading by mutableStateOf(false)
-    var error by mutableStateOf(false)
-    var videoDetail by mutableStateOf(VideoDetail.LOADING)
+    val videoId = MutableStateFlow("")
+    val isLoading = MutableStateFlow(false)
+    val error = MutableStateFlow(false)
+    val videoDetail = MutableStateFlow(VideoDetail.LOADING)
     val commentPager by lazy {
         Pager(
             config = PagingConfig(
@@ -38,50 +40,50 @@ class VideoViewModel @Inject constructor(
                 sessionManager = sessionManager,
                 mediaRepo = mediaRepo,
                 mediaType = MediaType.VIDEO,
-                authorId = videoDetail.authorId,
-                mediaId = videoDetail.id
+                authorId = videoDetail.value.authorId,
+                mediaId = videoDetail.value.id
             )
         }.flow.cachedIn(viewModelScope)
     }
 
     fun loadVideo(id: String){
-        if(videoDetail != VideoDetail.LOADING){
+        if(videoDetail.value != VideoDetail.LOADING){
             return
         }
 
         viewModelScope.launch {
-            videoId = id
-            isLoading = true
-            error = false
+            videoId.update { id }
+            isLoading.update { true }
+            error.update { false }
 
             val response = mediaRepo.getVideoDetail(sessionManager.session, id)
             if(response.isSuccess()){
-                videoDetail = response.read()
+                videoDetail.update { response.read() }
             }else {
-                error = true
+                error.update { true }
             }
 
-            isLoading = false
+            isLoading.update { false }
         }
     }
 
     fun handleLike(result: (action: Boolean, success: Boolean) -> Unit){
-        val action = !videoDetail.isLike
+        val action = !videoDetail.value.isLike
         viewModelScope.launch {
-            val response = mediaRepo.like(sessionManager.session, action, videoDetail.likeLink)
+            val response = mediaRepo.like(sessionManager.session, action, videoDetail.value.likeLink)
             if(response.isSuccess()){
-                videoDetail = videoDetail.copy(isLike = response.read().status)
+                videoDetail.update { it.copy(isLike = response.read().status) }
             }
             result(action, response.isSuccess())
         }
     }
 
     fun handleFollow(result: (action: Boolean, success: Boolean) -> Unit){
-        val action = !videoDetail.follow
+        val action = !videoDetail.value.follow
         viewModelScope.launch {
-            val response = mediaRepo.follow(sessionManager.session, action, videoDetail.followLink)
+            val response = mediaRepo.follow(sessionManager.session, action, videoDetail.value.followLink)
             if(response.isSuccess()){
-                videoDetail = videoDetail.copy(follow = response.read().status)
+                videoDetail.update { it.copy(follow = response.read().status) }
             }
             result(action, response.isSuccess())
         }

@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ero.iwara.DatabaseManager
+import com.ero.iwara.stroage.dao.UserDao
 import com.ero.iwara.event.AppEvent
 import com.ero.iwara.event.postFlowEvent
 import com.ero.iwara.model.session.SessionManager
@@ -20,7 +20,7 @@ import javax.inject.Inject
 class LoginViewModel @Inject constructor(
     private val userRepo: UserRepo,
     private val sessionManager: SessionManager,
-    private val databaseManager: DatabaseManager
+    private val userDao: UserDao
 ): ViewModel() {
     var email by mutableStateOf("")
     var password by mutableStateOf("")
@@ -56,7 +56,7 @@ class LoginViewModel @Inject constructor(
                 {
                     accessToken = accessResponse.read()
                     sessionManager.update(token, accessToken)
-                    databaseManager.saveUser(email, password, token, accessToken)
+                    userDao.upsert(email, password, token, accessToken)
                     postFlowEvent(AppEvent.UserLoggedInEvent(email, password))
                     result(true)
                 }

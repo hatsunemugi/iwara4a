@@ -1,6 +1,6 @@
 package com.ero.iwara.model.detail.video
 
-import com.ero.iwara.result.MLinkInfo
+import com.ero.iwara.api.result.MLinkInfo
 
 data class VideoDetail(
     // 视频信息
