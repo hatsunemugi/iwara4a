@@ -6,5 +6,5 @@ import kotlinx.serialization.Serializable
 data class MLike(
     val id: Int,
     val user: MUser,
-    val createAt: String
+    val createdAt: String
 )

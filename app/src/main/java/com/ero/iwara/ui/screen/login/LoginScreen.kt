@@ -47,6 +47,7 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.ero.iwara.R
+import com.ero.iwara.event.log
 import com.ero.iwara.ui.public.FullScreenTopBar
 import com.ero.iwara.util.send
 import com.vanpra.composematerialdialogs.MaterialDialog
@@ -74,6 +75,8 @@ fun LoginScreen(navController: NavController, loginViewModel: LoginViewModel = h
 }
 @Composable
 private fun Content(loginViewModel: LoginViewModel, navController: NavController) {
+    var account by remember { mutableStateOf(loginViewModel.email) }
+    var password by remember { mutableStateOf(loginViewModel.password) }
     val context = LocalContext.current
     var showPassword by remember {
         mutableStateOf(false)
@@ -125,8 +128,8 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
         // Username
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = loginViewModel.email,
-            onValueChange = { loginViewModel.email = it },
+            value = account,
+            onValueChange = { account = it },
             label = {
                 Text(
                     text = "用户名"
@@ -138,8 +141,8 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
         // Password
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = loginViewModel.password,
-            onValueChange = { loginViewModel.password = it },
+            value = password,
+            onValueChange = { password = it },
             label = {
                 Text(
                     text = "密码"
@@ -175,17 +178,17 @@ private fun Content(loginViewModel: LoginViewModel, navController: NavController
         Button(
             modifier = Modifier.fillMaxWidth(),
             onClick = {
-                if (loginViewModel.email.isBlank() || loginViewModel.password.isBlank()) {
-                    send("用户名或密码不能为空")
+                if (account.isBlank() || password.isBlank()) {
+                    log(0,16,"系统","登录","用户名或密码不能为空")
                     return@Button
                 }
 
                 progressState.show()
-                loginViewModel.login {
+                loginViewModel.login(account, password) {
                     // 处理结果
                     if (it) {
                         // 登录成功
-                        send("登录成功-${loginViewModel.token.length}-${loginViewModel.accessToken.length}")
+                        log(0, 16, "系统","登录","成功")
                         navController.navigate("index"){
                             popUpTo("login"){
                                 inclusive = true

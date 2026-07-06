@@ -8,10 +8,8 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.ero.iwara.api.paging.SubscriptionsSource
 import com.ero.iwara.model.index.MediaPreview
-import com.ero.iwara.model.index.MediaQueryParam
 import com.ero.iwara.model.index.MediaType
-import com.ero.iwara.model.index.SortType
-import com.ero.iwara.model.session.SessionManager
+import com.ero.iwara.stroage.Config
 import com.ero.iwara.repo.MediaRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -24,8 +22,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SubViewModel @Inject constructor(
-    private val repo: MediaRepo,
-    private val sessionManager: SessionManager
+    private val repo: MediaRepo
 ) : ViewModel() {
     val value: MutableStateFlow<MediaType> = MutableStateFlow(MediaType.VIDEO)
 
@@ -39,9 +36,7 @@ class SubViewModel @Inject constructor(
                 // 每次都创建一个新的 MediaSource 实例，并传入当前最新的参数
                 SubscriptionsSource(
                     it,
-                    repo,
-                    sessionManager,
-
+                    repo
                 )
             }
         ).flow

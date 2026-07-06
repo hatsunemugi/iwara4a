@@ -8,7 +8,10 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
+import androidx.compose.foundation.pager.PagerScope
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -18,6 +21,7 @@ import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -36,6 +40,7 @@ import androidx.paging.compose.itemKey
 import com.ero.iwara.R
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
+import com.ero.iwara.ui.local.LocalPagerState
 import com.ero.iwara.ui.public.MediaPreviewCard
 import com.ero.iwara.util.noRippleClickable
 
@@ -88,7 +93,11 @@ fun VideoListPage(navController: NavController, editor: ((SortType, List<String>
                     )
                 })
             {
-                LazyColumn(modifier = Modifier.fillMaxSize())
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Fixed(2), // 💡 关键：固定 2 列
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(1.dp), // 💡 左右间距
+                    verticalItemSpacing = 1.dp )
                 {
                     items(
                         count = list.itemCount,
@@ -102,11 +111,11 @@ fun VideoListPage(navController: NavController, editor: ((SortType, List<String>
                     }
                     when (list.loadState.append) {
                         LoadState.Loading -> {
-                            item {
+                            item(span = StaggeredGridItemSpan.FullLine) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(8.dp),
+                                        .padding(16.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
@@ -119,12 +128,12 @@ fun VideoListPage(navController: NavController, editor: ((SortType, List<String>
                             }
                         }
                         is LoadState.Error -> {
-                            item {
+                            item(span = StaggeredGridItemSpan.FullLine) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .noRippleClickable { list.retry() }
-                                        .padding(8.dp),
+                                        .padding(16.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {

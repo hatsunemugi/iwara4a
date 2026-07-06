@@ -17,7 +17,6 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun logDao(): LogDao
 
     companion object {
-
         const val DATABASE_NAME = "iwara.db"
     }
 }

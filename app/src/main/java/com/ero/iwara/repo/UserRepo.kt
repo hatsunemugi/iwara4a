@@ -15,9 +15,9 @@ class UserRepo @Inject constructor(
 
     suspend fun getToken(token: String): Response<String> = iwaraApi.getToken(token)
 
-    suspend fun getSelf(session: Session): Response<Self> = iwaraApi.getSelf(session)
+    suspend fun getSelf(): Response<Self> = iwaraApi.getSelf()
 
-    suspend fun getUser(session: Session, username: String): Response<UserData> = iwaraApi.getUser(session, username)
+    suspend fun getUser(username: String): Response<UserData> = iwaraApi.getUser( username)
 
-    suspend fun getCount(session: Session): Response<MCount> = iwaraApi.getCount(session)
+    suspend fun getCount(): Response<MCount> = iwaraApi.getCount()
 }

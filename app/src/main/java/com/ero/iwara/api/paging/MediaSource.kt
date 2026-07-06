@@ -6,7 +6,6 @@ import androidx.paging.PagingState
 import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
-import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.repo.MediaRepo
 
 private const val TAG = "MediaSource"
@@ -15,8 +14,7 @@ class MediaSource(
     private val mediaSort: SortType,
     private val mediaType: MediaType,
     private val mediaTags: List<String>,
-    private val mediaRepo: MediaRepo,
-    private val sessionManager: SessionManager
+    private val mediaRepo: MediaRepo
 ): PagingSource<Int, MediaPreview>() {
     override fun getRefreshKey(state: PagingState<Int, MediaPreview>): Int? {
         return 0
@@ -27,7 +25,7 @@ class MediaSource(
 
         Log.i(TAG, "load: Trying to load media list: $page")
 
-        val response = mediaRepo.getMediaList(sessionManager.session, mediaType, page, mediaSort, mediaTags)
+        val response = mediaRepo.getMediaList(mediaType, page, mediaSort, mediaTags)
         return if(response.isSuccess()){
             val data = response.read()
             Log.i(TAG, "load: Success load media list (data size=${data.mediaList.size}, hasNext=${data.hasNext})")

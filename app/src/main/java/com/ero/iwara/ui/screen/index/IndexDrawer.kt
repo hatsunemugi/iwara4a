@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Subscriptions
@@ -41,6 +42,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.ero.iwara.event.route
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.util.send
 
@@ -258,7 +260,7 @@ fun IndexDrawer(
     indexViewModel: IndexViewModel
 ) {
     val user by remember { derivedStateOf { indexViewModel.self } }
-    val loading by remember { derivedStateOf { indexViewModel.loadingSelf } }
+    val loading by remember { derivedStateOf { !indexViewModel.ready } }
     MaterialTheme { // 包裹在 MaterialTheme 中以应用颜色和排版
         IndexDrawerContent(
             profile = Profile(
@@ -270,7 +272,8 @@ fun IndexDrawer(
             items = listOf(
                 NavItem("视频", "video", Icons.Default.Videocam),
                 NavItem("订阅", "subscribe", Icons.Default.Subscriptions),
-                NavItem("图片", "image", Icons.Default.Image)
+                NavItem("图片", "image", Icons.Default.Image),
+                NavItem("日志", "log", Icons.Default.Description)
             ),
             onProfileClick = {
                 navController.navigate("login")
@@ -278,7 +281,10 @@ fun IndexDrawer(
             onRefreshProfile = {
                 indexViewModel.refreshSelf()
             },
-            onNavItemClick = {}
+            onNavItemClick = {
+                if(indexViewModel.debug) route(it.route)
+                indexViewModel.debug = !indexViewModel.debug
+            }
         )
     }
 }

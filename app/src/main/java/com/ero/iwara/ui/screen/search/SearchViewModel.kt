@@ -12,14 +12,13 @@ import com.ero.iwara.api.paging.SearchSource
 import com.ero.iwara.model.index.MediaQueryParam
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
-import com.ero.iwara.model.session.SessionManager
+import com.ero.iwara.stroage.Config
 import com.ero.iwara.repo.MediaRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val sessionManager: SessionManager,
     private val mediaRepo: MediaRepo
 ) : ViewModel() {
     var query by mutableStateOf("")
@@ -35,7 +34,6 @@ class SearchViewModel @Inject constructor(
         ){
             SearchSource(
                 mediaRepo,
-                sessionManager,
                 query,
                 searchParam
             )

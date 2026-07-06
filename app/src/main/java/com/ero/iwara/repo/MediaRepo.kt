@@ -18,35 +18,32 @@ class MediaRepo @Inject constructor(
         iwaraApi.getTag(filter, page)
 
     suspend fun getSubscriptionList(
-        session: Session,
         type: MediaType,
         @IntRange(from = 0) page: Int
-    ): Response<SubscriptionList> = iwaraApi.getSubscriptionList(session, type, page)
+    ): Response<SubscriptionList> = iwaraApi.getSubscriptionList(type, page)
 
     suspend fun getMediaList(
-        session: Session,
         type: MediaType,
         page: Int,
         sort: SortType,
         tags: List<String>
-    ) = iwaraApi.getMediaList(session, type, page, sort, tags)
+    ) = iwaraApi.getMediaList(type, page, sort, tags)
 
-    suspend fun getImageDetail(session: Session, imageId: String) =
-        iwaraApi.getImagePageDetail(session, imageId)
+    suspend fun getImageDetail(imageId: String) =
+        iwaraApi.getImagePageDetail(imageId)
 
-    suspend fun getVideoDetail(session: Session, videoId: String) =
-        iwaraApi.getVideoPageDetail(session, videoId)
+    suspend fun getVideoDetail(videoId: String) =
+        iwaraApi.getVideoPageDetail(videoId)
 
-    suspend fun like(session: Session, like: Boolean, link: String) =
-        iwaraApi.like(session, like, link)
+    suspend fun like(like: Boolean, link: String) =
+        iwaraApi.like(like, link)
 
-    suspend fun follow(session: Session, follow: Boolean, link: String) =
-        iwaraApi.follow(session, follow, link)
+    suspend fun follow(follow: Boolean, link: String) =
+        iwaraApi.follow(follow, link)
 
-    suspend fun loadComment(session: Session, mediaType: MediaType, authorId: String, mediaId: String, page: Int) =
-        iwaraApi.getCommentList(session, mediaType, authorId, mediaId, page)
+    suspend fun loadComment(mediaType: MediaType, authorId: String, mediaId: String, page: Int) =
+        iwaraApi.getCommentList(mediaType, authorId, mediaId, page)
 
-    suspend fun search(session: Session, query: String, page: Int, type: MediaType): Response<MediaList> = iwaraApi.search(
-        session, query, page, type
-    )/**/
+    suspend fun search(query: String, page: Int, type: MediaType): Response<MediaList> =
+        iwaraApi.search(query, page, type)/**/
 }

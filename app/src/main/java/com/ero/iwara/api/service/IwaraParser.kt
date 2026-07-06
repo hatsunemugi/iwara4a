@@ -3,6 +3,7 @@ package com.ero.iwara.api.service
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.getValue
 import com.ero.iwara.api.Response
 import com.ero.iwara.model.comment.Comment
 import com.ero.iwara.model.comment.CommentList
@@ -17,7 +18,6 @@ import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.model.index.SubscriptionList
 import com.ero.iwara.model.index.TagList
-import com.ero.iwara.model.session.Session
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.model.user.UserData
 import com.ero.iwara.param.PageParam
@@ -40,9 +40,10 @@ import com.ero.iwara.api.result.MToken
 import com.ero.iwara.api.result.MUser
 import com.ero.iwara.api.result.MUserInfo
 import com.ero.iwara.api.result.MVideo
-import com.ero.iwara.model.session.SessionManager
-import com.ero.iwara.sharedPreferencesOf
+import com.ero.iwara.event.log
+import com.ero.iwara.stroage.Config
 import com.ero.iwara.util.format
+import com.ero.iwara.util.formatCount
 import com.ero.iwara.util.okhttp.CookieJarHelper
 import com.ero.iwara.util.okhttp.await
 import com.ero.iwara.util.send
@@ -58,7 +59,6 @@ import okhttp3.Request
 import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import java.util.concurrent.TimeUnit
-import kotlin.properties.ReadWriteProperty
 
 private const val TAG = "IwaraParser"
 
@@ -71,11 +71,13 @@ private const val TAG = "IwaraParser"
  * @author RE
  */
 class IwaraParser(
-    sessionManager: SessionManager
+    private val config: Config
 ) {
     val api = "https://api.iwara.tv"
     val file = "https://i.iwara.tv"
-    val salt by sessionManager.salt
+    val id by config.id
+    val salt by config.salt
+    val debug by config.debug
     fun getClient(): OkHttpClient
     {
         val client = OkHttpClient.Builder()
@@ -96,7 +98,7 @@ class IwaraParser(
         }
         catch (ex: Exception)
         {
-            return null.apply { send("结果：${json.take(100)}-错误:${ex.toString()}", true) }
+            return null.apply { log(0,8, "格式化", json,ex.toString()) }
         }
     }
     suspend inline fun <reified E> get(url: String, param: Map<String, String>? = null, headers: Map<String, String>? = null): E? =
@@ -116,12 +118,13 @@ class IwaraParser(
                 }
                 val response = httpClient.newCall(request.build()).await()
                 val json = response.body.string()
+                if(debug) log(0,4, "调试", url,json)
                 val model = decode<E>(json)
                 return@withContext model.apply { if(model == null) send("接口地址：$url-参数${param.toQuery()}-标头${headers.toQuery()}", true) }
 
             } catch (ex: Exception)
             {
-                return@withContext null.apply { send("接口地址：$url-参数${param.toQuery()}-标头${headers.toQuery()}-错误${ex.toString()}", true) }
+                return@withContext null.apply { log(0,1, "网络", url,ex.toString()) }
             }
         }
     suspend inline fun <reified E> delete(url: String, param: Map<String, String>? = null, headers: Map<String, String>? = null): E? =
@@ -142,6 +145,7 @@ class IwaraParser(
                 }
                 val response = httpClient.newCall(request.build()).await()
                 val json = response.body.string()
+                if(debug) log(0,4, "调试", url,json)
                 val model = decode<E>(json)
                 return@withContext model.apply { if(model == null) send("接口地址：$url-参数${param.toQuery()}-标头${headers.toQuery()}", true) }
             }
@@ -165,12 +169,13 @@ class IwaraParser(
                 }
                 val response = httpClient.newCall(request.build()).await()
                 val json = response.body.string()
+                if(debug) log(0,4, "调试", url,json)
                 val model = decode<E>(json)
                 return@withContext model.apply { if(model == null) send("接口地址：$url-参数${param}-标头${headers.toQuery()}",true) }
             }
             catch (ex: Exception)
             {
-                return@withContext null.apply { send("接口地址：$url-参数${param}-标头${headers.toQuery()}-错误${ex.toString()}",true) }
+                return@withContext null.apply { log(0,2, "网络", url,ex.toString()) }
             }
         }
     suspend inline fun <reified T> post(url: String, headers: Map<String, String>? = null): T? =
@@ -187,12 +192,13 @@ class IwaraParser(
                 }
                 val response = httpClient.newCall(request.build()).await()
                 val json = response.body.string()
+                if(debug) log(0,4, "调试", url,json)
                 val model = decode<T>(json)
                 return@withContext model.apply { if(model == null) send("接口地址：$url-标头${headers.toQuery()}",true) }
             }
             catch (ex: Exception)
             {
-                return@withContext null.apply { send("接口地址：$url-标头${headers.toQuery()}-错误${ex.toString()}",true) }
+                return@withContext null.apply {  log(0,2, "网络", url,ex.toString())  }
             }
         }
     suspend fun login(param: UserLogin): Response<String> {
@@ -216,10 +222,10 @@ class IwaraParser(
         }
     }
 
-    suspend fun getSelf(session: Session): Response<Self>
+    suspend fun getSelf(): Response<Self>
     {
         try {
-            val user = get<MUserInfo>("$api/user", null, session.map()) ?: return Response.failed("接口请求失败")
+            val user = get<MUserInfo>("$api/user", null, config.header()) ?: return Response.failed("接口请求失败")
             val id = user.user.id
             val email = user.user.email ?: ""
             val username = user.user.username
@@ -246,14 +252,14 @@ class IwaraParser(
         }
     }
 
-    suspend fun getSubscriptionList(session: Session, type: MediaType, page: Int): Response<SubscriptionList>
+    suspend fun getSubscriptionList(type: MediaType, page: Int): Response<SubscriptionList>
     {
         try {
             val param = PageParam(rating = "ecchi", page = page, limit = 32, subscribed = true)
             val response = when(type){
-                MediaType.VIDEO -> get<MResult<MVideo>>("$api/videos", param.map(), session.map())?.transform { it.mediaView(file)}
-                MediaType.IMAGE -> get<MResult<MImage>>("$api/images", param.map(), session.map())?.transform { it.mediaView(file)}
-                MediaType.POST -> get<MResult<MPost>>("$api/posts", param.map(), session.map())?.transform { it.mediaView(file)}
+                MediaType.VIDEO -> get<MResult<MVideo>>("$api/videos", param.map(), config.header())?.transform { it.mediaView(file)}
+                MediaType.IMAGE -> get<MResult<MImage>>("$api/images", param.map(), config.header())?.transform { it.mediaView(file)}
+                MediaType.POST -> get<MResult<MPost>>("$api/posts", param.map(), config.header())?.transform { it.mediaView(file)}
                 else -> null
             }?: return Response.failed("接口请求失败")
             val hasNextPage = response.limit * (page +1) < response.count
@@ -270,11 +276,11 @@ class IwaraParser(
             return Response.failed(ex.javaClass.name)
         }
     }
-    suspend fun getImagePageDetail(session: Session, imageId: String): Response<ImageDetail>
+    suspend fun getImagePageDetail(imageId: String): Response<ImageDetail>
     {
         try {
             Log.i(TAG, "getImagePageDetail: start load image detail: $imageId")
-            val response = get<MImage>("$api/image/$imageId",null, session.map()) ?: return Response.failed("${imageId}为空")
+            val response = get<MImage>("$api/image/$imageId",null, config.header()) ?: return Response.failed("${imageId}为空")
             val title = response.title
             val imageLinks = response.files.map {
                 it.getLargeImage(file)
@@ -302,12 +308,12 @@ class IwaraParser(
     }
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
-    suspend fun getVideoPageDetail(session: Session, videoId: String): Response<VideoDetail>
+    suspend fun getVideoPageDetail(videoId: String): Response<VideoDetail>
     {
         try {
             Log.i(TAG, "getVideoPageDetail: Start load video detail (id:$videoId)")
-            val response = get<MVideo>("$api/video/$videoId",null, session.map()) ?: return Response.failed("${videoId}为空")
-            val links = response.fileUrl?.let { get<List<MLinkInfo>>(it, null,session.map("x-version" to response.version(salt))) }?.filter { it.name != "preview" }?.apply { forEach { it.src  = MLink("https:"+it.src.view, "https:"+it.src.download)  } } ?: listOf()
+            val response = get<MVideo>("$api/video/$videoId",null, config.header()) ?: return Response.failed("${videoId}为空")
+            val links = response.fileUrl?.let { get<List<MLinkInfo>>(it, null,config.header("x-version" to response.version(salt))) }?.filter { it.name != "preview" }?.apply { forEach { it.src  = MLink("https:"+it.src.view, "https:"+it.src.download)  } } ?: listOf()
             Log.i(TAG, "links:$links")
             val title = response.title
             val likes = response.numLikes.toString()
@@ -321,15 +327,15 @@ class IwaraParser(
             val nickname = response.user.name
             val username = response.user.username
             val authorPic = response.user.getAvatar(file)
-            val related = get<MResult<MVideo>>("$api/videos", PageParam(rating = "ecchi", user = authorId, exclude = response.id, limit = 32).map(), session.map())
+            val related = get<MResult<MVideo>>("$api/videos", PageParam(rating = "ecchi", user = authorId, exclude = response.id, limit = 32).map(), config.header())
 //            val related = get<MResult<MVideo>>("$api/video/${response.id}/related",null, session.map())
             // 更多视频
             val moreVideo = related?.results?.map {
                 val id = it.id
                 val title = it.title
                 val pic =  it.getPreviewPic(file)
-                val likes = it.numLikes.toString()
-                val watches = it.numViews.toString()
+                val likes = formatCount(it.numLikes)
+                val watches = formatCount(it.numViews)
                 MoreVideo(
                     id = id,
                     title = title,
@@ -373,10 +379,10 @@ class IwaraParser(
         }
     }
 
-    suspend fun like(session: Session, like: Boolean, likeLink: String): Response<LikeResponse>
+    suspend fun like(like: Boolean, likeLink: String): Response<LikeResponse>
     {
         try {
-            val response = if(like) post<MLike>(likeLink, session.map()) else delete<MLike>(likeLink, session.map())
+            val response = if(like) post<MLike>(likeLink, config.header()) else delete<MLike>(likeLink, config.header())
             val likeResponse = LikeResponse(status = response != null)
             return Response.success(likeResponse)
         } catch (ex: Exception) {
@@ -385,10 +391,10 @@ class IwaraParser(
         }
     }
 
-    suspend fun follow(session: Session, follow: Boolean, followLink: String): Response<FollowResponse>
+    suspend fun follow(follow: Boolean, followLink: String): Response<FollowResponse>
     {
         try {
-            val response = if(follow) post<MBase>(followLink, session.map()) else delete<MBase>(followLink, session.map())
+            val response = if(follow) post<MBase>(followLink, config.header()) else delete<MBase>(followLink, config.header())
 
             val followResponse = FollowResponse(status = response != null)
             return Response.success(followResponse)
@@ -397,12 +403,11 @@ class IwaraParser(
             return Response.failed(e.javaClass.name)
         }
     }
-    suspend fun getReply(session: Session, mediaType: MediaType, author: String, mediaId: String, comment: MComment): List<Comment> {
+    suspend fun getReply(mediaType: MediaType, author: String, mediaId: String, comment: MComment): List<Comment> {
         try {
             if(comment.numReplies == 0) return listOf()
-            val self = sharedPreferencesOf("session").getString("id","未登录")
             val param = PageParam(parent = comment.id, page = 0)
-            val response = get<MResult<MComment>>("$api/${mediaType.value}/$mediaId/comments", param.map(), session.map())
+            val response = get<MResult<MComment>>("$api/${mediaType.value}/$mediaId/comments", param.map(), config.header())
             val result = response?.results?.map {
                 val authorId = it.user?.id ?: ""
                 val authorName = it.user?.name ?: ""
@@ -416,12 +421,12 @@ class IwaraParser(
                     authorPic = authorPic,
                     posterType= when(authorId){
                         author -> CommentPosterType.OWNER
-                        self -> CommentPosterType.SELF
+                        id -> CommentPosterType.SELF
                         else -> CommentPosterType.NORMAL
                     },
                     content = content,
                     date = date,
-                    reply = getReply(session, mediaType, author, mediaId, it)
+                    reply = getReply(mediaType, author, mediaId, it)
                 )
             } ?: listOf()
             return result
@@ -432,7 +437,6 @@ class IwaraParser(
         }
     }
     suspend fun getCommentList(
-        session: Session,
         mediaType: MediaType,
         author: String,
         mediaId: String,
@@ -441,8 +445,7 @@ class IwaraParser(
     {
         try {
             val param = PageParam(page = page)
-            val response = get<MResult<MComment>>("$api/${mediaType.value}/$mediaId/comments", param.map(), session.map()) ?: return Response.failed("接口请求失败")
-            val self = sharedPreferencesOf("session").getString("id","未登录")
+            val response = get<MResult<MComment>>("$api/${mediaType.value}/$mediaId/comments", param.map(), config.header()) ?: return Response.failed("接口请求失败")
             val commentList = response.results.map {
                 val authorId = it.user?.id ?: ""
                 val authorName = it.user?.name ?: ""
@@ -457,12 +460,12 @@ class IwaraParser(
                     authorPic = authorPic,
                     posterType= when(authorId){
                         author -> CommentPosterType.OWNER
-                        self -> CommentPosterType.SELF
+                        id -> CommentPosterType.SELF
                         else -> CommentPosterType.NORMAL
                     },
                     content = content,
                     date = date,
-                    reply = getReply(session, mediaType, author, mediaId, it)
+                    reply = getReply(mediaType, author, mediaId, it)
                 )
             }
 
@@ -483,15 +486,15 @@ class IwaraParser(
         }
     }
 
-    suspend fun getMediaList(session: Session, mediaType: MediaType, page: Int, sort: SortType, tags: List<String>): Response<MediaList>
+    suspend fun getMediaList(mediaType: MediaType, page: Int, sort: SortType, tags: List<String>): Response<MediaList>
     {
         try {
             val param = PageParam(page = page, rating = "ecchi", sort = sort.value, tags = tags.joinToString(","))
             val result = when(mediaType)
             {
-                MediaType.IMAGE -> get<MResult<MImage>>("$api/images", param.map(), session.map())?.transform { it.mediaView(file) }
-                MediaType.VIDEO -> get<MResult<MVideo>>("$api/videos", param.map(), session.map())?.transform { it.mediaView(file) }
-                else -> get<MResult<MVideo>>("$api/videos", param.map(), session.map())?.transform { it.mediaView(file) }
+                MediaType.IMAGE -> get<MResult<MImage>>("$api/images", param.map(), config.header())?.transform { it.mediaView(file) }
+                MediaType.VIDEO -> get<MResult<MVideo>>("$api/videos", param.map(), config.header())?.transform { it.mediaView(file) }
+                else -> get<MResult<MVideo>>("$api/videos", param.map(), config.header())?.transform { it.mediaView(file) }
             } ?: return Response.failed("接口请求失败")
             val list = result.results
             val hasNext = result.limit * (page) < result.count
@@ -508,10 +511,10 @@ class IwaraParser(
             return Response.failed(e.javaClass.name)
         }
     }
-    suspend fun getCount(session: Session): Response<MCount>
+    suspend fun getCount(): Response<MCount>
     {
         try{
-            val response = get<MCount>("$api/user/counts", null, session .map()) ?: return Response.failed("接口请求失败")
+            val response = get<MCount>("$api/user/counts", null, config.header()) ?: return Response.failed("接口请求失败")
 
             return Response.success(response)
         }catch (ex: Exception){
@@ -519,10 +522,10 @@ class IwaraParser(
             return Response.failed(ex.javaClass.name)
         }
     }
-    suspend fun getUser(session: Session, username: String): Response<UserData>
+    suspend fun getUser(username: String): Response<UserData>
     {
         try{
-            val response = get<MProfile>("$api/profile/$username", null, session .map()) ?: return Response.failed("接口请求失败")
+            val response = get<MProfile>("$api/profile/$username", null, config.header()) ?: return Response.failed("接口请求失败")
             val user = response.user
             return Response.success(
                 UserData(
@@ -540,18 +543,18 @@ class IwaraParser(
         }
     }
 
-    suspend fun search(session: Session, query: String, page: Int, type: MediaType): Response<MediaList>
+    suspend fun search(query: String, page: Int, type: MediaType): Response<MediaList>
     {
         try {
             val param = PageParam(page = page, type = "${type.value}s" , query = query)
             val result = when(type)
             {
-                MediaType.IMAGE -> get<MResult<MImage>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
-                MediaType.VIDEO -> get<MResult<MVideo>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
-                MediaType.POST ->  get<MResult<MPost>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
-                MediaType.USER -> get<MResult<MUser>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
-                MediaType.FORUM -> get<MResult<MForum>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
-                MediaType.THREAD -> get<MResult<MThread>>("$api/search", param.map(), session.map())?.transform { it.mediaView(file) }
+                MediaType.IMAGE -> get<MResult<MImage>>("$api/search", param.map(), config.header())?.transform { it.mediaView(file) }
+                MediaType.VIDEO -> get<MResult<MVideo>>("$api/search", param.map(), config.header())?.transform { it.mediaView(file) }
+                MediaType.POST ->  get<MResult<MPost>>("$api/search", param.map(), config.header())?.transform { it.mediaView(file) }
+                MediaType.USER -> get<MResult<MUser>>("$api/search", param.map(), config.header())?.transform { it.mediaView(file) }
+                MediaType.FORUM -> get<MResult<MForum>>("$api/search", param.map(), config.header())?.transform { it.mediaView(file) }
+                MediaType.THREAD -> get<MResult<MThread>>("$api/search", param.map(), config.header())?.transform { it.mediaView(file) }
             } ?: return Response.failed("接口请求失败")
             val list = result.results
             val hasNext = result.limit * (page) < result.count

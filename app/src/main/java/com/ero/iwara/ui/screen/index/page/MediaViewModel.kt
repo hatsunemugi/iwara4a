@@ -7,13 +7,10 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.ero.iwara.api.paging.MediaSource
-import com.ero.iwara.event.AppEvent
-import com.ero.iwara.event.subscribe
 import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaQueryParam
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
-import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.repo.MediaRepo
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -27,8 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MediaViewModel @Inject constructor(
-    private val mediaRepo: MediaRepo,
-    private val sessionManager: SessionManager
+    private val mediaRepo: MediaRepo
 ) : ViewModel() {
     val value: MutableStateFlow<MediaQueryParam> = MutableStateFlow(
         MediaQueryParam(
@@ -48,8 +44,7 @@ class MediaViewModel @Inject constructor(
                         it.sort,
                         it.type,
                         it.tags,
-                        mediaRepo,
-                        sessionManager
+                        mediaRepo
                     )
                 }
             ).flow

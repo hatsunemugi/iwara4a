@@ -21,9 +21,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -86,7 +84,6 @@ import com.ero.iwara.model.detail.video.VideoDetail
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.ui.local.LocalScreenOrientation
 import com.ero.iwara.ui.public.CommentItem
-import com.ero.iwara.ui.public.ExoPlayerContainer
 import com.ero.iwara.ui.public.FullScreenTopBar
 import com.ero.iwara.ui.public.TabItem
 import com.ero.iwara.ui.public.VideoPlayer
@@ -149,8 +146,7 @@ fun VideoScreen(
                             .weight(1f)
                             .fillMaxWidth()
                     ) {
-                        VideoInfo(navController, videoViewModel, video)
-
+                        VideoInfo(navController, videoViewModel)
                     }
                 }
                 loading -> {
@@ -219,7 +215,6 @@ private fun SystemUiController(
 private fun VideoInfo(
     navController: NavController,
     videoViewModel: VideoViewModel,
-    videoDetail: VideoDetail
 ) {
     val pagerState = rememberPagerState(pageCount = {2}, initialPage = 0)
     Column(Modifier.fillMaxSize()) {
@@ -244,7 +239,7 @@ private fun VideoInfo(
                 state = pagerState
             ) {
                 when (it) {
-                    0 -> VideoDescription(navController, videoViewModel, videoDetail)
+                    0 -> VideoDescription(navController, videoViewModel)
                     1 -> CommentPage(navController, videoViewModel)
                 }
             }
@@ -255,9 +250,9 @@ private fun VideoInfo(
 @Composable
 private fun VideoDescription(
     navController: NavController,
-    videoViewModel: VideoViewModel,
-    videoDetail: VideoDetail
+    videoViewModel: VideoViewModel
 ) {
+    val videoDetail by videoViewModel.videoDetail.collectAsState()
     val context = LocalContext.current
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item {

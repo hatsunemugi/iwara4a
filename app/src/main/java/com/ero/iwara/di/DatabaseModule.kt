@@ -2,8 +2,8 @@ package com.ero.iwara.di
 
 import android.content.Context
 import androidx.room.Room
-
 import com.ero.iwara.AppDatabase
+import com.ero.iwara.stroage.dao.LogDao
 import com.ero.iwara.stroage.dao.TagDao
 import com.ero.iwara.stroage.dao.UserDao
 import dagger.Module
@@ -37,5 +37,11 @@ object DatabaseModule {
     @Provides
     fun provideTagDao(appDatabase: AppDatabase): TagDao {
         return appDatabase.tagDao()
+    }
+
+    @Singleton
+    @Provides
+    fun provideLogDao(appDatabase: AppDatabase): LogDao {
+        return appDatabase.logDao()
     }
 }

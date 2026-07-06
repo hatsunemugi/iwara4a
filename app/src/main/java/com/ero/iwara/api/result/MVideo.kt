@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.annotation.RequiresApi
 import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaType
+import com.ero.iwara.util.formatCount
 import com.ero.iwara.util.query
 import kotlinx.serialization.Serializable
 import java.nio.charset.StandardCharsets
@@ -44,8 +45,8 @@ data class MVideo(
             author = user.name,
             previewPic = getPreviewPic(domain),
             animatePic = getAnimatePic(domain),
-            likes = numLikes.toString(),
-            watches = numViews.toString(),
+            likes = formatCount(numLikes),
+            watches = formatCount(numViews),
             mediaId = id,
             type = MediaType.VIDEO
         )

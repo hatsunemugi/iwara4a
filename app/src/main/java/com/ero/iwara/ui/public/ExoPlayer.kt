@@ -62,10 +62,13 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -180,7 +183,7 @@ fun ExoPlayerContainer(
     }
     var isControllerVisible by remember { mutableStateOf(false) }
     var isPlaying by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(true) }
     var currentPosition by remember { mutableLongStateOf(0L) }
     var bufferedPosition by remember { mutableLongStateOf(0L) }
     var duration by remember { mutableLongStateOf(0L) }
@@ -190,7 +193,8 @@ fun ExoPlayerContainer(
             buffer = { bufferedPosition = it },
             position = { currentPosition = it },
             duration = { duration = it },
-            loading = { isLoading = it }
+            loading = { isLoading = it },
+            playing = { if(it) isLoading = false},
         )
         player.addListener(listener)
         onDispose { player.removeListener(listener) }
@@ -238,7 +242,9 @@ fun ExoPlayerContainer(
 
         if (isLoading) {
             CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center).size(48.dp), // 屏幕中央用 48.dp 大小正合适
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .size(48.dp), // 屏幕中央用 48.dp 大小正合适
                 color = Color(0x66FFFFFF),       // 保持经典的红色主题
                 strokeWidth = 4.dp
             )
@@ -340,7 +346,9 @@ fun PlayerControlPanel(
                             .fillMaxWidth()
                             .height(3.dp), // 👈 稍微加粗到 3dp，2dp 在高分辨率屏幕（如平板）上真的一不留神就看不见
                         color = MaterialTheme.colorScheme.primary,
-                        trackColor = Color.White.copy(alpha = 0.2f)
+                        trackColor = Color.White.copy(alpha = 0.2f),
+                        gapSize = 0.dp,             // 设为 0 消除那个断点缝隙
+                        drawStopIndicator = {}      // 如果有这个 Lambda，传空即可隐藏右侧小白点
                     )
                 }
             }

@@ -5,15 +5,12 @@ import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.ero.iwara.model.index.MediaPreview
 import com.ero.iwara.model.index.MediaQueryParam
-import com.ero.iwara.model.index.MediaType
-import com.ero.iwara.model.session.SessionManager
 import com.ero.iwara.repo.MediaRepo
 
 private const val TAG = "SearchSource"
 
 class SearchSource(
     private val mediaRepo: MediaRepo,
-    private val sessionManager: SessionManager,
     private val query: String,
     private val mediaQueryParam: MediaQueryParam
 ) : PagingSource<Int, MediaPreview>() {
@@ -35,7 +32,6 @@ class SearchSource(
         Log.i(TAG, "load: Trying search: $page")
 
         val response = mediaRepo.search(
-            sessionManager.session,
             query,
             page,
             mediaQueryParam.type

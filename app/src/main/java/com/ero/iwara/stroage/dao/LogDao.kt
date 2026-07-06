@@ -6,7 +6,7 @@ import com.ero.iwara.stroage.entity.LogBase
 
 @Dao
 interface LogDao: BaseDao<LogBase> {
-    @Query("delete from logs where (uid = 0 and type = 0) or datetime(datetime, '+7 days')  < datetime('now', 'localtime')")
+    @Query("delete from logs where (uid = 0 and type & 3 > 0) or datetime(datetime, '+7 days')  < datetime('now', 'localtime')")
     suspend fun clear(): Int
 
     @Query("select count(1) from logs")

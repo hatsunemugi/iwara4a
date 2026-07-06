@@ -1,7 +1,7 @@
 package com.ero.iwara.di
 
 import android.content.Context
-import com.ero.iwara.model.session.SessionManager
+import com.ero.iwara.stroage.Config
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,5 +16,5 @@ object LocalModule {
 
     @Provides
     @Singleton
-    fun provideSessionManager(@ApplicationContext context: Context) = SessionManager(context)
+    fun provideSessionManager(@ApplicationContext context: Context) = Config(context)
 }

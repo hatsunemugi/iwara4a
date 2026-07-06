@@ -3,8 +3,7 @@ package com.ero.iwara.di
 import com.ero.iwara.api.IwaraApi
 import com.ero.iwara.api.IwaraApiImpl
 import com.ero.iwara.api.service.IwaraParser
-import com.ero.iwara.model.session.Session
-import com.ero.iwara.model.session.SessionManager
+import com.ero.iwara.stroage.Config
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,7 +20,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideIwaraParser(manager: SessionManager) = IwaraParser(manager)
+    fun provideIwaraParser(manager: Config) = IwaraParser(manager)
 
     @Provides
     @Singleton

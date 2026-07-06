@@ -1,22 +1,15 @@
 package com.ero.iwara.ui.screen.index
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.core.content.edit
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.ero.iwara.event.AppEvent
-import com.ero.iwara.event.postFlowEvent
-import com.ero.iwara.event.subscribe
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
-import com.ero.iwara.model.session.SessionManager
-import com.ero.iwara.model.user.Self
+import com.ero.iwara.stroage.Config
 import com.ero.iwara.repo.UserRepo
-import com.ero.iwara.sharedPreferencesOf
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,10 +17,16 @@ import javax.inject.Inject
 @HiltViewModel
 class IndexViewModel @Inject constructor(
     private val userRepo: UserRepo,
-    private val sessionManager: SessionManager
+    config: Config
 ) : ViewModel() {
-    var self by mutableStateOf(Self.GUEST)
-    var loadingSelf by mutableStateOf(false)
+    var id by config.id
+    var email by config.email
+    var avatar by config.avatar
+    var nickname by config.nickname
+    var username by config.username
+    var debug by config.debug
+    var self by config.user
+    var ready by config.ready
     var tag by mutableStateOf("")
     var sort by mutableStateOf(SortType.TREND)
     var type by mutableStateOf(MediaType.VIDEO)
@@ -37,14 +36,6 @@ class IndexViewModel @Inject constructor(
     var image: ()->Unit = {}
     var sub: ()->Unit = {}
 
-    init {
-        viewModelScope.subscribe<AppEvent.UserLoggedInEvent> {
-            refreshSelf()
-        }
-        refreshSelf()
-    }
-
-    override fun onCleared() { }
     fun search()
     {
         when(page()){
@@ -55,21 +46,18 @@ class IndexViewModel @Inject constructor(
     }
 
     fun refreshSelf() = viewModelScope.launch {
-        loadingSelf = true
-        self.email = sharedPreferencesOf("session").getString("email","请先登录你的账号吧")!!
-        val response = userRepo.getSelf(sessionManager.session)
+        ready = false
+        self.email = email
+        val response = userRepo.getSelf()
         if (response.isSuccess()) {
             val user = response.read()
             self = user
-            val sharedPreferences = sharedPreferencesOf("session")
-            sharedPreferences.edit {
-                putString("id", user.id)
-                putString("avatar", user.avatar)
-                putString("nickname", user.nickname)
-                putString("username", user.username)
-            }
-            postFlowEvent(AppEvent.UserInfoEvent(user))
+            id = user.id
+            email = user.email
+            avatar = user.avatar
+            nickname = user.nickname
+            username = user.username
         }
-        loadingSelf = false
+        ready = true
     }
 }

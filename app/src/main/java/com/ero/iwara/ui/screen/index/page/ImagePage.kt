@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -16,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,23 +34,24 @@ import androidx.paging.compose.itemKey
 import com.ero.iwara.R
 import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
+import com.ero.iwara.ui.local.LocalPagerState
 import com.ero.iwara.ui.public.MediaPreviewCard
 import com.ero.iwara.util.noRippleClickable
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImageListPage(navController: NavController, editor: ((SortType, List<String>)->Unit)->Unit, viewModel: MediaViewModel = hiltViewModel()){
-    editor { sort, tags->  viewModel.update(sort, MediaType.IMAGE, tags) }
-    val imageList = viewModel.pager.collectAsLazyPagingItems()
+    editor { sort, tags -> viewModel.update(sort, MediaType.IMAGE, tags) }
+    val list = viewModel.pager.collectAsLazyPagingItems()
     val freshState = rememberPullToRefreshState()
-    val isRefreshing = imageList.loadState.refresh is LoadState.Loading
+    val isRefreshing = list.loadState.refresh is LoadState.Loading
     Box(modifier = Modifier.fillMaxSize()) {
-        if (imageList.loadState.refresh is LoadState.Error) {
+        if (list.loadState.refresh is LoadState.Error) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .noRippleClickable {
-                        imageList.retry()
+                        list.retry()
                     },
                 contentAlignment = Alignment.Center
             ) {
@@ -69,42 +73,26 @@ fun ImageListPage(navController: NavController, editor: ((SortType, List<String>
             PullToRefreshBox(
                 isRefreshing = isRefreshing,
                 state = freshState,
-                onRefresh = { imageList.refresh() } )
+                onRefresh = { list.refresh() } )
             {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
-//                    item {
-//                        QueryParamSelector(
-//                            "排序",
-//                            current = currentQueryParam.sort,
-//                            list = SortType.entries,
-//                            items = tagList,
-//                            onEdit = {},
-//                            onChangeType = {
-//                                indexViewModel.updateImageSort(it)
-////                                indexViewModel.imageQueryParam.sort = it
-////                                imageList.refresh()
-//                            },
-//                            onChangeFilters = {
-//                                indexViewModel.updateImageTags(it)
-////                                indexViewModel.imageQueryParam.tags = it
-////                                imageList.refresh()
-//                            }
-//                        )
-//                    }
-
+                LazyVerticalStaggeredGrid(
+                    columns = StaggeredGridCells.Fixed(2), // 💡 关键：固定 2 列
+                    modifier = Modifier.fillMaxSize(),
+                    horizontalArrangement = Arrangement.spacedBy(1.dp), // 💡 左右间距
+                    verticalItemSpacing = 1.dp ) {
                     items(
-                        count = imageList.itemCount,
-                        key = imageList.itemKey { it.id }, // 提供稳定的 key
-                        contentType = imageList.itemContentType { "imageItem" } // 提供内容类型
+                        count = list.itemCount,
+                        key = list.itemKey { it.id }, // 提供稳定的 key
+                        contentType = list.itemContentType { "imageItem" } // 提供内容类型
                     ) { index ->
-                        val mediaPreview = imageList[index] // 获取项
+                        val mediaPreview = list[index] // 获取项
                         mediaPreview?.let {
                             MediaPreviewCard(navController, it)
                         }
                     }
-                    when (imageList.loadState.append) {
+                    when (list.loadState.append) {
                         LoadState.Loading -> {
-                            item {
+                            item(span = StaggeredGridItemSpan.FullLine) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxSize()
@@ -121,11 +109,11 @@ fun ImageListPage(navController: NavController, editor: ((SortType, List<String>
                             }
                         }
                         is LoadState.Error -> {
-                            item {
+                            item(span = StaggeredGridItemSpan.FullLine) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .noRippleClickable { imageList.retry() }
+                                        .noRippleClickable { list.retry() }
                                         .padding(8.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
@@ -145,7 +133,7 @@ fun ImageListPage(navController: NavController, editor: ((SortType, List<String>
                                         }
                                         Text(
                                             modifier = Modifier.padding(horizontal = 16.dp),
-                                            text = "加载失败: ${(imageList.loadState.append as LoadState.Error).error.message}"
+                                            text = "加载失败: ${(list.loadState.append as LoadState.Error).error.message}"
                                         )
                                         Text(text = "点击重试")
                                     }

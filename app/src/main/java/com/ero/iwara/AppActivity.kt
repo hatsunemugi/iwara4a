@@ -1,9 +1,7 @@
-package com.ero.iwara.ui.activity
+package com.ero.iwara
 
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.Log
-import android.view.Window
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,15 +13,15 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -34,55 +32,39 @@ import com.ero.iwara.event.AppEvent
 import com.ero.iwara.event.subscribe
 import com.ero.iwara.ui.local.LocalScreenOrientation
 import com.ero.iwara.ui.screen.image.ImageScreen
+import com.ero.iwara.ui.screen.index.IndexScreen
+import com.ero.iwara.ui.screen.log.LogScreen
+import com.ero.iwara.ui.screen.login.LoginScreen
 import com.ero.iwara.ui.screen.search.SearchScreen
+import com.ero.iwara.ui.screen.splash.SplashScreen
 import com.ero.iwara.ui.screen.user.UserScreen
 import com.ero.iwara.ui.screen.video.VideoScreen
 import com.ero.iwara.ui.theme.IwaraTheme
-import com.ero.iwara.ui.screen.index.IndexScreen
-import com.ero.iwara.ui.screen.login.LoginScreen
-import com.ero.iwara.ui.screen.splash.SplashScreen
 import com.ero.iwara.util.set
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : ComponentActivity() {
+class AppActivity : ComponentActivity() {
     var screenOrientation by mutableIntStateOf(Configuration.ORIENTATION_PORTRAIT)
-    val message = MutableSharedFlow<AppEvent.GenericMessageEvent>()
+    val message = MutableSharedFlow<AppEvent.MessageEvent>()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             CompositionLocalProvider(LocalScreenOrientation provides screenOrientation) {
                 Index()
-                Listen()
             }
         }
 
-    }
-    @Composable
-    fun Listen()
-    {
-        val context = LocalContext.current
-        val clipboard = LocalClipboard.current
-        lifecycleScope.subscribe<AppEvent.GenericMessageEvent> {
-            message.emit(it)
-        }
-        LaunchedEffect(Unit) { // 如果 messagesFlow 实例是稳定的，也可以用 Unit
-            message.asSharedFlow().collectLatest {
-//                Toast.makeText(context, it.message, Toast.LENGTH_SHORT).show()
-                Log.d("iwara", it.message)
-//                if(it.copy) clipboard.set(it.message)
-            }
-        }
     }
 
     @Composable
     fun Index()
     {
+        val context = LocalContext.current
+        var toast by remember { mutableStateOf<Toast?>(null) }
+        val clipboard = LocalClipboard.current
         IwaraTheme {
             val useDarkIcons = !isSystemInDarkTheme()
             val navController = rememberNavController()
@@ -92,13 +74,27 @@ class MainActivity : ComponentActivity() {
                 controller.isAppearanceLightNavigationBars = useDarkIcons
                 controller.hide(WindowInsetsCompat.Type.systemBars())
                 controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-//                navController.currentBackStackEntryFlow.collect { backStackEntry ->
-//                    // 这个 collect 块会在每次导航事件导致 backStackEntryFlow 发出新值时执行
-//
+//                lifecycleScope.subscribe<AppEvent.MessageEvent> {
+//                    toast?.cancel()
+//                    toast = Toast.makeText(context, it.message, Toast.LENGTH_SHORT)
+//                    toast?.show()
 //                }
+                lifecycleScope.subscribe<AppEvent.Clipboard> {
+                    toast?.cancel()
+                    clipboard.set(it.message)
+                    toast = Toast.makeText(context, it.message, Toast.LENGTH_SHORT)
+                    toast?.show()
+                }
+                lifecycleScope.subscribe<AppEvent.RouteEvent> {
+                    navController.navigate(it.route)
+                }
             }
-            NavHost(modifier = Modifier.fillMaxSize(), navController = navController, startDestination = "splash") {
-                composable("splash"){
+            NavHost(
+                modifier = Modifier.Companion.fillMaxSize(),
+                navController = navController,
+                startDestination = "splash"
+            ) {
+                composable("splash") {
                     SplashScreen(navController)
                 }
 
@@ -114,7 +110,7 @@ class MainActivity : ComponentActivity() {
                     route = "video/{videoId}",
                     arguments = listOf(
                         navArgument("videoId") {
-                            type = NavType.StringType
+                            type = NavType.Companion.StringType
                         }
                     ),
                     deepLinks = listOf(
@@ -133,7 +129,7 @@ class MainActivity : ComponentActivity() {
                     route = "image/{imageId}",
                     arguments = listOf(
                         navArgument("imageId") {
-                            type = NavType.StringType
+                            type = NavType.Companion.StringType
                         }
                     ),
                     deepLinks = listOf(
@@ -150,7 +146,7 @@ class MainActivity : ComponentActivity() {
                     route = "user/{username}",
                     arguments = listOf(
                         navArgument("username") {
-                            type = NavType.StringType
+                            type = NavType.Companion.StringType
                         }
                     ),
                     deepLinks = listOf(
@@ -162,8 +158,12 @@ class MainActivity : ComponentActivity() {
                     UserScreen(navController, it.arguments?.getString("username")!!)
                 }
 
-                composable("search"){
+                composable("search") {
                     SearchScreen(navController)
+                }
+
+                composable("log") {
+                    LogScreen()
                 }
             }
         }

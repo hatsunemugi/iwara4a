@@ -15,6 +15,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -32,6 +33,9 @@ fun IndexScreen(navController: NavController, indexViewModel: IndexViewModel = h
     val pagerState = rememberPagerState(initialPage = 1, pageCount = { 3 })
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     indexViewModel.page = { pagerState.currentPage }
+    LaunchedEffect(pagerState.currentPage) {
+        indexViewModel.search()
+    }
     ModalNavigationDrawer(
         drawerState = drawerState,
         drawerContent = {
@@ -56,17 +60,21 @@ fun IndexScreen(navController: NavController, indexViewModel: IndexViewModel = h
                 when (it) {
                     0 -> {
                         VideoListPage(navController, { it ->
-                            indexViewModel.video = { it(indexViewModel.sort, indexViewModel.tags) }
+                            indexViewModel.video =
+                                { it(indexViewModel.sort, indexViewModel.tags) }
                         })
                     }
+
                     1 -> {
                         SubPage(navController, { it ->
                             indexViewModel.sub = { it(indexViewModel.type) }
                         })
                     }
+
                     2 -> {
-                        ImageListPage(navController,{ it ->
-                            indexViewModel.image = { it(indexViewModel.sort, indexViewModel.tags) }
+                        ImageListPage(navController, { it ->
+                            indexViewModel.image =
+                                { it(indexViewModel.sort, indexViewModel.tags) }
                         })
                     }
                 }

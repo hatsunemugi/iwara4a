@@ -22,7 +22,6 @@ class PlayerListener(
         position?.invoke(player.currentPosition)
         duration?.invoke(player.duration)
         playing?.invoke(player.isPlaying)
-        loading?.invoke(player.isLoading)
     }
     override fun onVideoSizeChanged(videoSize: VideoSize) {
         size?.invoke(videoSize.width, videoSize.height)

@@ -2,41 +2,21 @@ package com.ero.iwara.util
 
 import android.content.ClipData
 import android.content.Context
-import android.net.Uri
-import android.widget.Toast
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.LayoutModifier
-import androidx.compose.ui.layout.Measurable
-import androidx.compose.ui.layout.MeasureResult
-import androidx.compose.ui.layout.MeasureScope
-import androidx.compose.ui.layout.Placeable
-import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.Clipboard
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.toClipEntry
-import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.height
-import androidx.compose.ui.unit.width
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
@@ -56,13 +36,7 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import com.ero.iwara.cache.MediaCache
 import com.ero.iwara.event.AppEvent
-import com.ero.iwara.event.postFlowEvent
-import com.ero.iwara.event.subscribe
-import com.ero.iwara.handler
-import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collectLatest
+import com.ero.iwara.event.publish
 
 
 @OptIn(FormatStringsInDatetimeFormats::class, ExperimentalTime::class)
@@ -99,7 +73,7 @@ suspend fun Clipboard?.set(text: String?)
 
 fun send(message: String, copy: Boolean = true)
 {
-    postFlowEvent(AppEvent.GenericMessageEvent(message, copy))
+    publish(AppEvent.MessageEvent(message, copy))
 }
 
 fun Map<String, String>?.toQuery(): String?

@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".ui.activity.MainActivity"
+            android:name=".AppActivity"
             android:exported="true"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:theme="@style/AppTheme"

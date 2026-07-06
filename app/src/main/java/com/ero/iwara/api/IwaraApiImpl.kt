@@ -13,7 +13,6 @@ import com.ero.iwara.model.index.MediaType
 import com.ero.iwara.model.index.SortType
 import com.ero.iwara.model.index.SubscriptionList
 import com.ero.iwara.model.index.TagList
-import com.ero.iwara.model.session.Session
 import com.ero.iwara.model.user.Self
 import com.ero.iwara.model.user.UserData
 import com.ero.iwara.param.UserLogin
@@ -33,50 +32,43 @@ class IwaraApiImpl(
     override suspend fun getToken(token: String): Response<String> =
         iwaraParser.getToken(token)
 
-    override suspend fun getSelf(session: Session): Response<Self> =
-        autoRetry { iwaraParser.getSelf(session) }
+    override suspend fun getSelf(): Response<Self> =
+        autoRetry { iwaraParser.getSelf() }
 
     override suspend fun getTag(filter: String, page: Int): Response<TagList> =
         autoRetry { iwaraParser.getTag(filter, page) }
 
     override suspend fun getSubscriptionList(
-        session: Session,
         type: MediaType,
         page: Int
-    ): Response<SubscriptionList> = autoRetry { iwaraParser.getSubscriptionList(session, type, page) }
+    ): Response<SubscriptionList> = autoRetry { iwaraParser.getSubscriptionList(type, page) }
 
     override suspend fun getImagePageDetail(
-        session: Session,
         imageId: String
-    ): Response<ImageDetail> = autoRetry { iwaraParser.getImagePageDetail(session, imageId) }
+    ): Response<ImageDetail> = autoRetry { iwaraParser.getImagePageDetail(imageId) }
 
     @RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
     override suspend fun getVideoPageDetail(
-        session: Session,
         videoId: String
-    ): Response<VideoDetail> = iwaraParser.getVideoPageDetail(session, videoId)
+    ): Response<VideoDetail> = iwaraParser.getVideoPageDetail(videoId)
 
     override suspend fun like(
-        session: Session,
         like: Boolean,
         likeLink: String
-    ): Response<LikeResponse> = iwaraParser.like(session, like, likeLink)
+    ): Response<LikeResponse> = iwaraParser.like(like, likeLink)
 
     override suspend fun follow(
-        session: Session,
-        follow: Boolean,
+         follow: Boolean,
         followLink: String
-    ): Response<FollowResponse> = iwaraParser.follow(session, follow, followLink)
+    ): Response<FollowResponse> = iwaraParser.follow(follow, followLink)
 
     override suspend fun getCommentList(
-        session: Session,
         mediaType: MediaType,
         authorId: String,
         mediaId: String,
         page: Int
     ): Response<CommentList> = autoRetry {
         iwaraParser.getCommentList(
-            session,
             mediaType,
             authorId,
             mediaId,
@@ -85,14 +77,12 @@ class IwaraApiImpl(
     }
 
     override suspend fun getMediaList(
-        session: Session,
         mediaType: MediaType,
         page: Int,
         sort: SortType,
         tags: List<String>
     ): Response<MediaList> = autoRetry {
         iwaraParser.getMediaList(
-            session,
             mediaType,
             page,
             sort,
@@ -100,23 +90,20 @@ class IwaraApiImpl(
         )
     }
 
-    override suspend fun getUser(session: Session, username: String): Response<UserData> = autoRetry {
+    override suspend fun getUser(username: String): Response<UserData> = autoRetry {
         iwaraParser.getUser(
-            session,
             username
         )
     }
 
-    override suspend fun getCount(session: Session): Response<MCount> = iwaraParser.getCount(session)
+    override suspend fun getCount(): Response<MCount> = iwaraParser.getCount()
 
     override suspend fun search(
-        session: Session,
         query: String,
         page: Int,
         type: MediaType
     ): Response<MediaList> = autoRetry {
         iwaraParser.search(
-            session,
             query,
             page,
             type

@@ -2,7 +2,6 @@ package com.ero.iwara.stroage
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.provider.Settings.Global.putInt
 import androidx.core.content.edit
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
